@@ -27,9 +27,19 @@ function activate( context )
         var folder = path.dirname( filePath );
         var name = path.basename( filePath );
 
-        var blameCommand = "git blame " + name + " | grep -n '^0* ' | cut -f1 -d: ";
-        var status = exec( blameCommand, { cwd: folder } )
-        var ranges = getRanges( ( status + "" ).split( "\n" ) );
+        var blameCommand = "git blame " + name;
+        var blame = exec( blameCommand, { cwd: folder } );
+        var lines = blame.toString().split( "\n" );
+        var modified = lines.reduce( function( filtered, line, index )
+        {
+            if( line.indexOf( "00000000" ) === 0 )
+            {
+                filtered.push( index + 1 );
+            }
+            return filtered;
+        }, [] );
+
+        var ranges = getRanges( modified );
 
         var clangFormatConfig = vscode.workspace.getConfiguration( 'clang-format' );
         var clangFormat = clangFormatConfig && clangFormatConfig.executable;
@@ -43,18 +53,23 @@ function activate( context )
             clangFormat = "clang-format";
         }
 
+        var args = "";
         ranges.map( function( range )
         {
             if( range !== ":0" )
             {
-                var positions = range.split( ":" );
-                if( positions.length === 2 )
+                if( range.indexOf( ":" ) === -1 )
                 {
-                    var formatCommand = clangFormat + " -i -lines=" + range + " " + name;
-                    exec( formatCommand, { cwd: folder } );
+                    range += ( ":" + range );
                 }
+                args += " -lines=" + range;
             }
         } );
+        if( args.length > 0 )
+        {
+            var formatCommand = clangFormat + " -i" + args + " " + name;
+            exec( formatCommand, { cwd: folder } );
+        }
     }
 
     context.subscriptions.push( vscode.commands.registerCommand( 'format-modified.format', format ) );
