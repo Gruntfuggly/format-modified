@@ -1,0 +1,52 @@
+{
+    "name": "format-modified",
+    "displayName": "Format Modified",
+    "description": "Format modified sections of files",
+    "icon": "resources/icon.png",
+    "version": "0.0.1",
+    "publisher": "Gruntfuggly",
+    "repository": "https://github.com/Gruntfuggly/format-modified",
+    "engines": {
+        "vscode": "^1.5.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "*"
+    ],
+    "main": "./extension",
+    "contributes": {
+        "commands": [
+            {
+                "command": "format-modified.format",
+                "title": "Format modified sections"
+            }
+        ],
+        "configuration": {
+            "type": "object",
+            "title": "format-modified configuration",
+            "properties": {
+                "format-modified.globs": {
+                    "type": "array",
+                    "description": "Globs for selecting files to format",
+                    "default": [
+                        "**/*.h",
+                        "**/*.cpp"
+                    ]
+                }
+            }
+        }
+    },
+    "devDependencies": {
+        "typescript": "^2.0.3",
+        "vscode": "^1.0.0",
+        "mocha": "^2.3.3",
+        "eslint": "^3.6.0",
+        "@types/node": "^6.0.40",
+        "@types/mocha": "^2.2.32"
+    },
+    "dependencies": {
+        "minimatch": "^3.0.4"
+    }
+}
