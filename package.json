@@ -3,14 +3,14 @@
     "displayName": "Format Modified",
     "description": "Format modified sections of files",
     "icon": "resources/icon.png",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "publisher": "Gruntfuggly",
     "repository": "https://github.com/Gruntfuggly/format-modified",
     "engines": {
         "vscode": "^1.5.0"
     },
     "categories": [
-        "Other"
+        "Formatters"
     ],
     "activationEvents": [
         "*"
