@@ -20,27 +20,34 @@ function getRanges( array )
 
 function activate( context )
 {
+    var outputChannel;
+
+    function resetOutputChannel()
+    {
+        if( outputChannel )
+        {
+            outputChannel.dispose();
+            outputChannel = undefined;
+        }
+        if( vscode.workspace.getConfiguration( 'format-modified' ).debug === true )
+        {
+            outputChannel = vscode.window.createOutputChannel( "Format Modified" );
+            context.subscriptions.push( outputChannel );
+        }
+    }
+
+    function debug( text )
+    {
+        if( outputChannel )
+        {
+            outputChannel.appendLine( text );
+        }
+    }
+
+    resetOutputChannel();
+
     function format()
     {
-        var editor = vscode.window.activeTextEditor;
-        var filePath = vscode.Uri.parse( editor.document.uri.path ).fsPath;
-        var folder = path.dirname( filePath );
-        var name = path.basename( filePath );
-
-        var blameCommand = "git blame " + name;
-        var blame = exec( blameCommand, { cwd: folder } );
-        var lines = blame.toString().split( "\n" );
-        var modified = lines.reduce( function( filtered, line, index )
-        {
-            if( line.indexOf( "00000000" ) === 0 )
-            {
-                filtered.push( index + 1 );
-            }
-            return filtered;
-        }, [] );
-
-        var ranges = getRanges( modified );
-
         var clangFormatConfig = vscode.workspace.getConfiguration( 'clang-format' );
         var clangFormat = clangFormatConfig && clangFormatConfig.executable;
         if( !clangFormat || clangFormat === "clang-format" )
@@ -53,21 +60,59 @@ function activate( context )
             clangFormat = "clang-format";
         }
 
-        var args = "";
-        ranges.map( function( range )
+        var editor = vscode.window.activeTextEditor;
+        var filePath = vscode.Uri.parse( editor.document.uri.path ).fsPath;
+        var folder = path.dirname( filePath );
+        var name = path.basename( filePath );
+
+        var blameCommand = "git blame " + name;
+        var blame;
+        var ranges = [];
+        try
         {
-            if( range !== ":0" )
+            blame = exec( blameCommand, { cwd: folder } );
+
+            var lines = blame.toString().split( "\n" );
+            var modified = lines.reduce( function( filtered, line, index )
             {
-                if( range.indexOf( ":" ) === -1 )
+                if( line.indexOf( "00000000" ) === 0 )
                 {
-                    range += ( ":" + range );
+                    filtered.push( index + 1 );
                 }
-                args += " -lines=" + range;
+                return filtered;
+            }, [] );
+
+            ranges = getRanges( modified );
+
+            if( ranges && ranges.length > 0 )
+            {
+                var args = "";
+                ranges.map( function( range )
+                {
+                    if( range !== ":0" )
+                    {
+                        if( range.indexOf( ":" ) === -1 )
+                        {
+                            range += ( ":" + range );
+                        }
+                        args += " -lines=" + range;
+                    }
+                } );
+
+                var formatCommand = clangFormat + " -i " + args + " " + name;
+                debug( formatCommand );
+                exec( formatCommand, { cwd: folder } );
             }
-        } );
-        if( args.length > 0 )
+            else
+            {
+                debug( "No changes found in " + name );
+            }
+        }
+        catch( e )
         {
-            var formatCommand = clangFormat + " -i" + args + " " + name;
+            // format the whole file...
+            var formatCommand = clangFormat + " -i " + name;
+            debug( formatCommand );
             exec( formatCommand, { cwd: folder } );
         }
     }
@@ -98,6 +143,16 @@ function activate( context )
         }
     } ) );
 
+    context.subscriptions.push( vscode.workspace.onDidChangeConfiguration( function( e )
+    {
+        if( e.affectsConfiguration( "format-modified" ) )
+        {
+            if( e.affectsConfiguration( "format-modified.debug" ) )
+            {
+                resetOutputChannel();
+            }
+        }
+    } ) );
 }
 exports.activate = activate;
 

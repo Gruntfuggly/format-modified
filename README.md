@@ -4,6 +4,8 @@ Formats modified sections of code on save. This is useful where you have a legac
 
 Requires git and clang-format. The location of the clang-format executable will be determined from `clang-format.executable` or `C_Cpp.clang_format_path`. If neither of these is defined, it will assume clang-format is available in your normal path.
 
+*TODO: Register as a proper formatter.*
+
 ## Installing
 
 You can install the latest version of the extension via the Visual Studio Marketplace [here](https://marketplace.visualstudio.com/items?itemName=Gruntfuggly.format-modified).
@@ -17,6 +19,14 @@ Alternatively, open Visual Studio code, press `Ctrl+P` or `Cmd+P` and type:
 The source code is available on GitHub [here](https://github.com/Gruntfuggly/format-modified).
 
 ## Configuration
+
+`format-modified.debug`
+
+Enable this to create an output channel showing information for debugging purposes.
+
+`format-modified.executable`
+
+The extension will try and find the `clang-format` executable on it's own. Use this to specify it's location if you need to.
 
 `format-modified.globs`
 

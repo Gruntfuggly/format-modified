@@ -3,7 +3,7 @@
     "displayName": "Format Modified",
     "description": "Format modified sections of files",
     "icon": "resources/icon.png",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "publisher": "Gruntfuggly",
     "repository": "https://github.com/Gruntfuggly/format-modified",
     "engines": {
@@ -25,11 +25,20 @@
         ],
         "configuration": {
             "type": "object",
-            "title": "format-modified configuration",
+            "title": "Format Modified",
             "properties": {
+                "format-modified.debug": {
+                    "type": "boolean",
+                    "markdownDescription": "Set to true to create an output channel showing debug information",
+                    "default": false
+                },
+                "format-modified.executable": {
+                    "type": "string",
+                    "markdownDescription": "Location of clang-format executable"
+                },
                 "format-modified.globs": {
                     "type": "array",
-                    "description": "Globs for selecting files to format",
+                    "markdownDescription": "Globs for selecting files to format",
                     "default": [
                         "**/*.h",
                         "**/*.cpp"

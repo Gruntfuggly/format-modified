@@ -1,3 +1,7 @@
+# v0.0.4 - 2019-03-07
+- Handle files which are not in git (formats the whole file)
+- Add support for debug output channel
+
 # v0.0.3 - 2018-06-28
 - Add Formatters category to package.json
 
