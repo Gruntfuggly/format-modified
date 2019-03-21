@@ -4,8 +4,6 @@ Formats modified sections of code on save. This is useful where you have a legac
 
 Requires git and clang-format. The location of the clang-format executable will be determined from `clang-format.executable` or `C_Cpp.clang_format_path`. If neither of these is defined, it will assume clang-format is available in your normal path.
 
-*TODO: Register as a proper formatter.*
-
 ## Installing
 
 You can install the latest version of the extension via the Visual Studio Marketplace [here](https://marketplace.visualstudio.com/items?itemName=Gruntfuggly.format-modified).
@@ -28,9 +26,9 @@ Enable this to create an output channel showing information for debugging purpos
 
 The extension will try and find the `clang-format` executable on it's own. Use this to specify it's location if you need to.
 
-`format-modified.globs`
+`format-modified.languages`
 
-Use this to control which files are formatted. By default, .cpp and .h files are formatted. If no globs are defined, all files will be formatted.
+Use this to control which files are formatted. It is set to `["cpp"]` By default, so .cpp and .h files are formatted. Use *F1* -> *Change Language Mode* to show a list of language identifiers. Java, Javascript, Objective-C, Proto are supported by clang-format, but I have not tested them.
 
 # Known issues
 

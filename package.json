@@ -3,7 +3,7 @@
     "displayName": "Format Modified",
     "description": "Format modified sections of files",
     "icon": "resources/icon.png",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "publisher": "Gruntfuggly",
     "repository": "https://github.com/Gruntfuggly/format-modified",
     "engines": {
@@ -36,12 +36,11 @@
                     "type": "string",
                     "markdownDescription": "Location of clang-format executable"
                 },
-                "format-modified.globs": {
+                "format-modified.languages": {
                     "type": "array",
-                    "markdownDescription": "Globs for selecting files to format",
+                    "markdownDescription": "Languages which should be formatted (Use *F1* -> *Change Language Mode* to show a list)",
                     "default": [
-                        "**/*.h",
-                        "**/*.cpp"
+                        "cpp"
                     ]
                 }
             }
@@ -56,6 +55,12 @@
         "@types/mocha": "^2.2.32"
     },
     "dependencies": {
-        "minimatch": "^3.0.4"
+        "minimatch": "^3.0.4",
+        "parse-diff": "^0.5.1"
+    },
+    "__metadata": {
+        "id": "8e4d7336-2a86-4693-9e29-8dba19a92732",
+        "publisherDisplayName": "Gruntfuggly",
+        "publisherId": "d4906d2e-f2ee-492d-9c7c-02b6160599ec"
     }
 }

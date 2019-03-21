@@ -1,3 +1,6 @@
+# v0.0.5 - 2019-03-21
+- Rewrite as a document formatter
+
 # v0.0.4 - 2019-03-07
 - Handle files which are not in git (formats the whole file)
 - Add support for debug output channel

@@ -1,26 +1,12 @@
 
 var vscode = require( 'vscode' );
-var path = require( 'path' );
-var exec = require( 'child_process' ).execSync;
-var minimatch = require( 'minimatch' );
-
-function getRanges( array )
-{
-    var numbers = array.map( Number );
-    for( var ranges = [], rend, i = 0; i < numbers.length; )
-    {
-        ranges.push( ( rend = array[ i ] ) + ( ( function( rstart )
-        {
-            while( ++rend === numbers[ ++i ] );
-            return --rend === rstart;
-        } )( rend ) ? '' : ':' + rend ) );
-    }
-    return ranges;
-}
+var diffs = require( './diffs.js' );
+var formatter = require( './formatter.js' );
 
 function activate( context )
 {
     var outputChannel;
+    var provider;
 
     function resetOutputChannel()
     {
@@ -44,104 +30,51 @@ function activate( context )
         }
     }
 
-    resetOutputChannel();
-
-    function format()
+    function format( document )
     {
-        var clangFormatConfig = vscode.workspace.getConfiguration( 'clang-format' );
-        var clangFormat = clangFormatConfig && clangFormatConfig.executable;
-        if( !clangFormat || clangFormat === "clang-format" )
-        {
-            var cppConfig = vscode.workspace.getConfiguration( 'C_Cpp' );
-            clangFormat = cppConfig && cppConfig.clang_format_path;
-        }
-        if( !clangFormat )
-        {
-            clangFormat = "clang-format";
-        }
-
-        var editor = vscode.window.activeTextEditor;
-        var filePath = vscode.Uri.parse( editor.document.uri.path ).fsPath;
-        var folder = path.dirname( filePath );
-        var name = path.basename( filePath );
-
-        var blameCommand = "git blame " + name;
-        var blame;
-        var ranges = [];
+        var options = { outputChannel: outputChannel };
         try
         {
-            blame = exec( blameCommand, { cwd: folder } );
-
-            var lines = blame.toString().split( "\n" );
-            var modified = lines.reduce( function( filtered, line, index )
-            {
-                if( line.indexOf( "00000000" ) === 0 )
-                {
-                    filtered.push( index + 1 );
-                }
-                return filtered;
-            }, [] );
-
-            ranges = getRanges( modified );
-
-            if( ranges && ranges.length > 0 )
-            {
-                var args = "";
-                ranges.map( function( range )
-                {
-                    if( range !== ":0" )
-                    {
-                        if( range.indexOf( ":" ) === -1 )
-                        {
-                            range += ( ":" + range );
-                        }
-                        args += " -lines=" + range;
-                    }
-                } );
-
-                var formatCommand = clangFormat + " -i " + args + " " + name;
-                debug( formatCommand );
-                exec( formatCommand, { cwd: folder } );
-            }
-            else
-            {
-                debug( "No changes found in " + name );
-            }
+            return diffs.fetch( document, options );
         }
         catch( e )
         {
-            // format the whole file...
-            var formatCommand = clangFormat + " -i " + name;
-            debug( formatCommand );
-            exec( formatCommand, { cwd: folder } );
+            console.log( e );
+            return formatter.format( document, [], options );
         }
     }
 
-    context.subscriptions.push( vscode.commands.registerCommand( 'format-modified.format', format ) );
-
-    context.subscriptions.push( vscode.workspace.onDidSaveTextDocument( e =>
+    function register()
     {
-        if( e.uri.scheme === "file" )
+        if( provider )
         {
-            var globs = vscode.workspace.getConfiguration( 'format-modified' ).globs;
-            var shouldFormat = !globs || globs.length === 0;
-            if( !shouldFormat )
-            {
-                globs.forEach( glob =>
-                {
-                    if( minimatch( e.fileName, glob ) )
-                    {
-                        shouldFormat = true;
-                    }
-                } );
-            }
-
-            if( shouldFormat === true )
-            {
-                format();
-            }
+            provider.dispose();
         }
-    } ) );
+
+        var documentSelector = [];
+
+        vscode.workspace.getConfiguration( 'format-modified' ).languages.map( function( language )
+        {
+            documentSelector.push( { scheme: "file", language: language } );
+        } );
+
+        debug( "Supported languages: " + JSON.stringify( documentSelector ) );
+
+        provider = vscode.languages.registerDocumentFormattingEditProvider( documentSelector, {
+            provideDocumentFormattingEdits( document )
+            {
+                var edits = format( document );
+                return edits;
+            }
+        } );
+
+        context.subscriptions.push( provider );
+    }
+
+    resetOutputChannel();
+    register();
+
+    context.subscriptions.push( vscode.commands.registerCommand( 'format-modified.format', format ) );
 
     context.subscriptions.push( vscode.workspace.onDidChangeConfiguration( function( e )
     {
@@ -150,6 +83,10 @@ function activate( context )
             if( e.affectsConfiguration( "format-modified.debug" ) )
             {
                 resetOutputChannel();
+            }
+            else if( e.affectsConfiguration( "format-modified.languages" ) )
+            {
+                register();
             }
         }
     } ) );
