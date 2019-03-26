@@ -1,3 +1,8 @@
+# v0.0.6 - 2019-03-26
+- Ensure that the correct version is compared with the latest committed file
+- Write the document to a temporary file first
+- No longer formats the whole document if there are no changes
+
 # v0.0.5 - 2019-03-21
 - Rewrite as a document formatter
 
