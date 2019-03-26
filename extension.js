@@ -1,4 +1,5 @@
 
+var fs = require( 'fs' );
 var vscode = require( 'vscode' );
 var diffs = require( './diffs.js' );
 var formatter = require( './formatter.js' );
@@ -35,12 +36,18 @@ function activate( context )
         var options = { outputChannel: outputChannel };
         try
         {
-            return diffs.fetch( document, options );
+            if( !fs.existsSync( context.globalStoragePath ) )
+            {
+                fs.mkdirSync( context.globalStoragePath );
+            }
+
+            return diffs.fetch( document, options, context.globalStoragePath );
         }
         catch( e )
         {
             console.log( e );
-            return formatter.format( document, [], options );
+            debug( e );
+            return [];
         }
     }
 
@@ -63,6 +70,7 @@ function activate( context )
         provider = vscode.languages.registerDocumentFormattingEditProvider( documentSelector, {
             provideDocumentFormattingEdits( document )
             {
+                debug( "Formatter triggered..." );
                 var edits = format( document );
                 return edits;
             }
