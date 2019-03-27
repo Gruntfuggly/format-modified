@@ -30,47 +30,55 @@ module.exports.fetch = function run( document, options, tempFolder )
         var relativePath = childProcess.execSync( "git ls-files --full-name " + filePath, { cwd: folder } ).toString().trim();
         debug( "Relative path: " + relativePath );
 
-        var tempFileName = path.join( tempFolder, name );
-
-        fs.writeFileSync( tempFileName, document.getText() );
-
-        var differences = "";
-        debug( "Fetching diffs for " + name + " in " + folder );
-        var command = "git show :" + relativePath + " | git diff -U0 --no-index --exit-code --no-color -- - " + tempFileName;
-        var fetchDiffsProcess = childProcess.exec( command, { cwd: folder } );
-        fetchDiffsProcess.stdout.on( 'data', function( data )
+        if( relativePath !== "" )
         {
-            differences += data;
-        } );
-        fetchDiffsProcess.stderr.on( 'data', function( data )
-        {
-            debug( "Fetch diffs error: " + data );
-            reject( new DiffsError( data, "" ) );
-        } );
-        fetchDiffsProcess.on( 'close', function( code )
-        {
-            fs.unlinkSync( tempFileName );
+            var tempFileName = path.join( tempFolder, name );
 
-            var parsedDiffs = parse( differences );
-            var rangeArguments = [];
-            if( parsedDiffs && parsedDiffs.length > 0 )
+            fs.writeFileSync( tempFileName, document.getText() );
+
+            var differences = "";
+            debug( "Fetching diffs for " + name + " in " + folder );
+            var command = "git show :" + relativePath + " | git diff -U0 --no-index --exit-code --no-color -- - " + tempFileName;
+            var fetchDiffsProcess = childProcess.exec( command, { cwd: folder } );
+            fetchDiffsProcess.stdout.on( 'data', function( data )
             {
-                parsedDiffs[ 0 ].chunks.map( function( chunk )
+                differences += data;
+            } );
+            fetchDiffsProcess.stderr.on( 'data', function( data )
+            {
+                debug( "Fetch diffs error: " + data );
+                reject( new DiffsError( data, "" ) );
+            } );
+            fetchDiffsProcess.on( 'close', function( code )
+            {
+                fs.unlinkSync( tempFileName );
+
+                var parsedDiffs = parse( differences );
+                var rangeArguments = [];
+                if( parsedDiffs && parsedDiffs.length > 0 )
                 {
-                    rangeArguments.push( "-lines=" + ( chunk.newStart + ":" + ( chunk.newStart + chunk.newLines ) ) );
-                } );
-            }
+                    parsedDiffs[ 0 ].chunks.map( function( chunk )
+                    {
+                        rangeArguments.push( "-lines=" + ( chunk.newStart + ":" + ( chunk.newStart + chunk.newLines ) ) );
+                    } );
+                }
 
-            debug( "Ranges: " + rangeArguments );
+                debug( "Ranges: " + rangeArguments );
 
-            if( rangeArguments.length > 0 )
-            {
-                resolve( formatter.format( document, rangeArguments, options ) );
-            }
-            else
-            {
-                reject( new DiffsError( "No differences found?", "" ) );
-            }
-        } );
+                if( rangeArguments.length > 0 )
+                {
+                    resolve( formatter.format( document, rangeArguments, options ) );
+                }
+                else
+                {
+                    reject( new DiffsError( "No differences found?", "" ) );
+                }
+            } );
+        }
+        else
+        {
+            debug( "File not in git, so formatting the whole document" );
+            resolve( formatter.format( document, [], options ) );
+        }
     } );
 };

@@ -1,3 +1,6 @@
+# v0.0.7 - 2019-03-27
+- Reinstate formatting for the whole document if it is not in git
+
 # v0.0.6 - 2019-03-26
 - Ensure that the correct version is compared with the latest committed file
 - Write the document to a temporary file first
