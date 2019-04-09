@@ -1,3 +1,7 @@
+# v0.0.8 - 2019-04-09
+- Simplify file name handling
+- Extend debug logging
+
 # v0.0.7 - 2019-03-27
 - Reinstate formatting for the whole document if it is not in git
 

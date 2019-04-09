@@ -50,6 +50,7 @@ module.exports.format = function run( document, rangeArguments, options )
             let end = document.positionAt( document.getText().length );
             let editRange = new vscode.Range( start, end );
             edits.push( new vscode.TextEdit( editRange, formattedFile ) );
+            debug( "Created edits" );
             resolve( edits );
         } );
         formatFileProcess.stdin.write( document.getText() );

@@ -23,7 +23,7 @@ module.exports.fetch = function run( document, options, tempFolder )
 
     return new Promise( function( resolve, reject )
     {
-        var filePath = vscode.Uri.parse( document.uri.path ).fsPath;
+        var filePath = document.fileName;
         var folder = path.dirname( filePath );
         var name = path.basename( filePath );
 
@@ -63,14 +63,14 @@ module.exports.fetch = function run( document, options, tempFolder )
                     } );
                 }
 
-                debug( "Ranges: " + rangeArguments );
-
                 if( rangeArguments.length > 0 )
                 {
+                    debug( "Ranges: " + rangeArguments );
                     resolve( formatter.format( document, rangeArguments, options ) );
                 }
                 else
                 {
+                    debug( "No differences" );
                     reject( new DiffsError( "No differences found?", "" ) );
                 }
             } );
