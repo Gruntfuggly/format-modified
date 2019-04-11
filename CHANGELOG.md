@@ -1,3 +1,6 @@
+# v0.0.10 - 2019-04-11
+- Inhibit exception generated if file is not in a git repo
+
 # v0.0.9 - 2019-04-11
 - Inhibit exception generated if temp file does not exist
 
