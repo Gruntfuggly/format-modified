@@ -51,7 +51,10 @@ module.exports.fetch = function run( document, options, tempFolder )
             } );
             fetchDiffsProcess.on( 'close', function( code )
             {
-                fs.unlinkSync( tempFileName );
+                if( fs.existsSync( tempFileName ) )
+                {
+                    fs.unlinkSync( tempFileName );
+                }
 
                 var parsedDiffs = parse( differences );
                 var rangeArguments = [];

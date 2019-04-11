@@ -1,3 +1,6 @@
+# v0.0.9 - 2019-04-11
+- Inhibit exception generated if temp file does not exist
+
 # v0.0.8 - 2019-04-09
 - Simplify file name handling
 - Extend debug logging

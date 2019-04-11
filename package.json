@@ -3,7 +3,7 @@
     "displayName": "Format Modified",
     "description": "Format modified sections of files",
     "icon": "resources/icon.png",
-    "version": "0.0.8",
+    "version": "0.0.9",
     "publisher": "Gruntfuggly",
     "repository": "https://github.com/Gruntfuggly/format-modified",
     "engines": {
