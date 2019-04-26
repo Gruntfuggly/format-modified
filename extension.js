@@ -41,7 +41,27 @@ function activate( context )
                 fs.mkdirSync( context.globalStoragePath );
             }
 
-            return diffs.fetch( document, options, context.globalStoragePath );
+            if( document )
+            {
+                return diffs.fetch( document, options, context.globalStoragePath )
+            }
+            else
+            {
+                var previousPosition = vscode.window.activeTextEditor.selection.active;
+
+                diffs.fetch( vscode.window.activeTextEditor.document, options, context.globalStoragePath ).then( function( edits )
+                {
+                    var workspaceEdit = new vscode.WorkspaceEdit();
+                    workspaceEdit.set( vscode.window.activeTextEditor.document.uri, edits );
+
+                    vscode.workspace.applyEdit( workspaceEdit ).then( function()
+                    {
+                        debug( "Restoring previous cursor position" );
+                        vscode.window.activeTextEditor.selection = new vscode.Selection( previousPosition, previousPosition);
+                        debug( "OK" );
+                    } );
+                } );
+            }
         }
         catch( e )
         {

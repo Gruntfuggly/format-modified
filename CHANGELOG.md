@@ -1,3 +1,6 @@
+# v0.0.11 - 2019-04-26
+- Fix format from command prompt
+
 # v0.0.10 - 2019-04-11
 - Inhibit exception generated if file is not in a git repo
 
