@@ -1,5 +1,6 @@
 var childProcess = require( 'child_process' );
 var vscode = require( 'vscode' );
+var path = require( 'path' );
 
 function FormatError( error, stderr )
 {
@@ -9,6 +10,14 @@ function FormatError( error, stderr )
 
 module.exports.format = function run( document, rangeArguments, options )
 {
+    function debug( text )
+    {
+        if( options && options.outputChannel )
+        {
+            options.outputChannel.appendLine( text );
+        }
+    }
+
     var clangFormatConfig = vscode.workspace.getConfiguration( 'clang-format' );
     var clangFormat = clangFormatConfig && clangFormatConfig.executable;
     if( !clangFormat || clangFormat === "clang-format" )
@@ -21,19 +30,18 @@ module.exports.format = function run( document, rangeArguments, options )
         clangFormat = "clang-format";
     }
 
-    function debug( text )
-    {
-        if( options && options.outputChannel )
-        {
-            options.outputChannel.appendLine( text );
-        }
-    }
+    var cwd = path.dirname( document.fileName );
+
+    var formatArguments = [];
+    formatArguments.push( "-style=file" );
+    formatArguments = formatArguments.concat( rangeArguments );
+
+    debug( "Formatting using " + clangFormat + " " + formatArguments.join( " " ) + " in folder " + cwd );
 
     return new Promise( function( resolve, reject )
     {
-        debug( "Formatting using " + clangFormat );
         var formattedFile = "";
-        var formatFileProcess = childProcess.spawn( clangFormat, rangeArguments );
+        var formatFileProcess = childProcess.spawn( clangFormat, formatArguments, { cwd: cwd } );
         formatFileProcess.stdout.on( 'data', function( data )
         {
             formattedFile += data;
