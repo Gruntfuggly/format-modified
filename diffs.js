@@ -11,7 +11,7 @@ function DiffsError( error, stderr )
     this.stderr = stderr;
 }
 
-module.exports.fetch = function run( document, options, tempFolder )
+module.exports.fetch = function run( document, options, tempFolder, tidy )
 {
     function debug( text )
     {
@@ -49,6 +49,7 @@ module.exports.fetch = function run( document, options, tempFolder )
                 fetchDiffsProcess.stderr.on( 'data', function( data )
                 {
                     debug( "Fetch diffs error: " + data );
+                    tidy();
                     reject( new DiffsError( data, "" ) );
                 } );
                 fetchDiffsProcess.on( 'close', function( code )
@@ -71,11 +72,12 @@ module.exports.fetch = function run( document, options, tempFolder )
                     if( rangeArguments.length > 0 )
                     {
                         debug( "Ranges: " + rangeArguments );
-                        resolve( formatter.format( document, rangeArguments, options ) );
+                        resolve( formatter.format( document, rangeArguments, options, tidy ) );
                     }
                     else
                     {
                         debug( "No differences" );
+                        tidy();
                         reject( new DiffsError( "No differences found?", "" ) );
                     }
                 } );
@@ -83,13 +85,13 @@ module.exports.fetch = function run( document, options, tempFolder )
             else
             {
                 debug( "File not in git, so formatting the whole document" );
-                resolve( formatter.format( document, [], options ) );
+                resolve( formatter.format( document, [], options, tidy ) );
             }
         }
         catch( e )
         {
             debug( "File not in git, so formatting the whole document" );
-            resolve( formatter.format( document, [], options ) );
+            resolve( formatter.format( document, [], options, tidy ) );
         }
     } );
 };

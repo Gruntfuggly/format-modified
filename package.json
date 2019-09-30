@@ -42,6 +42,11 @@
                     "default": [
                         "cpp"
                     ]
+                },
+                "format-modified.customConfiguration": {
+                    "type": "object",
+                    "markdownDescription": "Globs to apply custom .clang-format files",
+                    "default": {}
                 }
             }
         }

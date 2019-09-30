@@ -8,7 +8,7 @@ function FormatError( error, stderr )
     this.stderr = stderr;
 }
 
-module.exports.format = function run( document, rangeArguments, options )
+module.exports.format = function run( document, rangeArguments, options, tidy )
 {
     function debug( text )
     {
@@ -49,6 +49,7 @@ module.exports.format = function run( document, rangeArguments, options )
         formatFileProcess.stderr.on( 'data', function( data )
         {
             debug( "Format File error:" + data );
+            tidy();
             reject( new FormatError( data, "" ) );
         } );
         formatFileProcess.on( 'close', function( code )
@@ -59,6 +60,7 @@ module.exports.format = function run( document, rangeArguments, options )
             let editRange = new vscode.Range( start, end );
             edits.push( new vscode.TextEdit( editRange, formattedFile ) );
             debug( "Created edits" );
+            tidy();
             resolve( edits );
         } );
         formatFileProcess.stdin.write( document.getText() );
