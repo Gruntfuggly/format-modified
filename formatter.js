@@ -8,7 +8,7 @@ function FormatError( error, stderr )
     this.stderr = stderr;
 }
 
-module.exports.format = function run( document, rangeArguments, options, tidy )
+module.exports.format = function run( document, rangeArguments, options )
 {
     function debug( text )
     {
@@ -36,31 +36,36 @@ module.exports.format = function run( document, rangeArguments, options, tidy )
     formatArguments.push( "-style=file" );
     formatArguments = formatArguments.concat( rangeArguments );
 
-    debug( "Formatting using " + clangFormat + " " + formatArguments.join( " " ) + " in folder " + cwd );
+    debug( "Formatting using:" );
+    debug( " " + clangFormat + " " + formatArguments.join( " " ) );
+    debug( "in folder " + cwd );
 
     return new Promise( function( resolve, reject )
     {
         var formattedFile = "";
         var formatFileProcess = childProcess.spawn( clangFormat, formatArguments, { cwd: cwd } );
+
+        if( formatFileProcess.pid === undefined )
+        {
+            reject( new FormatError( "Failed to execute clang format", "" ) );
+        }
+
         formatFileProcess.stdout.on( 'data', function( data )
         {
             formattedFile += data;
         } );
         formatFileProcess.stderr.on( 'data', function( data )
         {
-            debug( "Format File error:" + data );
-            tidy();
-            reject( new FormatError( data, "" ) );
+            reject( new FormatError( "Failed to format file", data ) );
         } );
         formatFileProcess.on( 'close', function( code )
         {
             var edits = [];
-            let start = document.positionAt( 0 );
-            let end = document.positionAt( document.getText().length );
-            let editRange = new vscode.Range( start, end );
+            var start = document.positionAt( 0 );
+            var end = document.positionAt( document.getText().length );
+            var editRange = new vscode.Range( start, end );
             edits.push( new vscode.TextEdit( editRange, formattedFile ) );
-            debug( "Created edits" );
-            tidy();
+            debug( "Format complete" );
             resolve( edits );
         } );
         formatFileProcess.stdin.write( document.getText() );

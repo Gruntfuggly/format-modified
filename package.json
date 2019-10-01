@@ -3,7 +3,7 @@
     "displayName": "Format Modified",
     "description": "Format modified sections of files",
     "icon": "resources/icon.png",
-    "version": "0.0.11",
+    "version": "0.0.12",
     "publisher": "Gruntfuggly",
     "repository": "https://github.com/Gruntfuggly/format-modified",
     "engines": {
@@ -20,7 +20,13 @@
         "commands": [
             {
                 "command": "format-modified.format",
-                "title": "Format modified sections"
+                "title": "Format modified sections",
+                "category": "Format Modified"
+            },
+            {
+                "command": "format-modified.setConfigurationFile",
+                "title": "Set Configuration File",
+                "category": "Format Modified"
             }
         ],
         "configuration": {
@@ -36,31 +42,48 @@
                     "type": "string",
                     "markdownDescription": "Location of clang-format executable"
                 },
+                "format-modified.formatWholeFile": {
+                    "type": "boolean",
+                    "markdownDescription": "Set to true to force the whole file to be formatted",
+                    "default": false
+                },
                 "format-modified.languages": {
                     "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
                     "markdownDescription": "Languages which should be formatted (Use *F1* -> *Change Language Mode* to show a list)",
                     "default": [
                         "cpp"
-                    ]
+                    ],
+                    "pattern": "(cpp|c|objective-c|objective-cpp|java|javascript|typescript|proto)"
                 },
-                "format-modified.customConfiguration": {
+                "format-modified.configurationFileMapping": {
                     "type": "object",
-                    "markdownDescription": "Globs to apply custom .clang-format files",
+                    "markdownDescription": "Globs to apply alternative .clang-format files",
                     "default": {}
+                },
+                "format-modified.alternativeConfigurationFiles": {
+                    "type": "array",
+                    "markdownDescription": "A list of alternative .clang-format files which can be associated with a file using the Set Format File command",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": []
                 }
             }
         }
     },
     "devDependencies": {
-        "typescript": "^2.0.3",
-        "vscode": "^1.0.0",
-        "mocha": "^2.3.3",
-        "eslint": "^3.6.0",
+        "@types/mocha": "^2.2.32",
         "@types/node": "^6.0.40",
-        "@types/mocha": "^2.2.32"
+        "eslint": "^3.6.0",
+        "mocha": "^3.5.3",
+        "typescript": "^2.0.3",
+        "vscode": "^1.0.0"
     },
     "dependencies": {
-        "minimatch": "^3.0.4",
+        "micromatch": "^4.0.2",
         "parse-diff": "^0.5.1"
     },
     "__metadata": {

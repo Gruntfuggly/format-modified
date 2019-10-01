@@ -6,6 +6,8 @@ var vscode = require( 'vscode' );
 var micromatch = require( 'micromatch' );
 var diffs = require( './diffs.js' );
 
+var USE_LOCAL_CONFIGURATION_FILE = 'none (find .clang-format)';
+
 function activate( context )
 {
     var outputChannel;
@@ -41,10 +43,10 @@ function activate( context )
 
         formatContext.formatFilePath = path.join( path.dirname( document.fileName ), '.clang-format' );
         formatContext.backupFormatFilePath = undefined;
-        formatContext.customFormatFilePath = undefined;
+        formatContext.alternativeFormatFilePath = undefined;
 
-        var config = vscode.workspace.getConfiguration( 'format-modified' ).customConfiguration;
-        if( document && document.uri && document.uri.scheme === 'file' )
+        var config = vscode.workspace.getConfiguration( 'format-modified' ).get( 'configurationFileMapping' );
+        if( document && document.uri.scheme === 'file' )
         {
             Object.keys( config ).map( function( glob )
             {
@@ -52,9 +54,9 @@ function activate( context )
                 {
                     if( micromatch.isMatch( document.fileName, glob ) )
                     {
-                        formatContext.customFormatFilePath = config[ glob ];
+                        formatContext.alternativeFormatFilePath = config[ glob ];
 
-                        debug( "Using custom configuration " + formatContext.customFormatFilePath );
+                        debug( "Using alternative configuration file: " + formatContext.alternativeFormatFilePath );
 
                         if( fs.existsSync( formatContext.formatFilePath ) )
                         {
@@ -63,14 +65,14 @@ function activate( context )
                             fs.renameSync( formatContext.formatFilePath, formatContext.backupFormatFilePath );
                         }
 
-                        fs.copyFileSync( formatContext.customFormatFilePath, formatContext.formatFilePath );
+                        fs.copyFileSync( formatContext.alternativeFormatFilePath, formatContext.formatFilePath );
                     }
                 }
             } );
-        };
+        }
     }
 
-    function format( document, tidy )
+    function format( document )
     {
         function tidy()
         {
@@ -82,11 +84,13 @@ function activate( context )
                     fs.unlinkSync( formatContext.backupFormatFilePath );
                 } );
             }
-            else if( formatContext.customFormatFilePath )
+            else if( formatContext.alternativeFormatFilePath )
             {
-                debug( "Removing custom .clang-format" );
+                debug( "Removing alternative .clang-format" );
                 fs.unlinkSync( formatContext.formatFilePath );
             }
+
+            debug( "Finished" );
         }
 
         var options = { outputChannel: outputChannel };
@@ -99,19 +103,33 @@ function activate( context )
 
             if( document )
             {
-                updateContext( document );
-                var result = diffs.fetch( document, options, context.globalStoragePath, tidy );
-                return result;
+                return new Promise( function( resolve, reject )
+                {
+                    updateContext( document );
+                    diffs.fetch( document, options, context.globalStoragePath ).then( function( edits )
+                    {
+                        tidy();
+                        resolve( edits );
+                    } ).catch( function( error )
+                    {
+                        debug( error.message );
+                        debug( error.stderr );
+                        vscode.window.showErrorMessage( error.message );
+                        tidy();
+                    } );
+                } );
             }
             else
             {
                 updateContext( vscode.window.activeTextEditor.document );
                 var previousPosition = vscode.window.activeTextEditor.selection.active;
 
-                diffs.fetch( vscode.window.activeTextEditor.document, options, context.globalStoragePath, tidy ).then( function( edits )
+                diffs.fetch( vscode.window.activeTextEditor.document, options, context.globalStoragePath ).then( function( edits )
                 {
                     var workspaceEdit = new vscode.WorkspaceEdit();
-                    workspaceEdit.set( vscode.window.activeTextEditor.document.uri, edits );
+                    workspaceEdit.set(
+                        vscode.window.activeTextEditor.document.uri,
+                        edits );
 
                     vscode.workspace.applyEdit( workspaceEdit ).then( function()
                     {
@@ -119,6 +137,14 @@ function activate( context )
                         vscode.window.activeTextEditor.selection = new vscode.Selection( previousPosition, previousPosition );
                         debug( "OK" );
                     } );
+
+                    tidy();
+                } ).catch( function( error )
+                {
+                    debug( error.message );
+                    debug( error.stderr );
+                    vscode.window.showErrorMessage( error.message );
+                    tidy();
                 } );
             }
         }
@@ -152,8 +178,13 @@ function activate( context )
             {
                 debug( "Formatter triggered..." );
 
-                var edits = format( document );
-                return edits;
+                return new Promise( function( resolve, reject )
+                {
+                    format( document ).then( function( edits )
+                    {
+                        resolve( edits );
+                    } );
+                } );
             }
         } );
 
@@ -164,6 +195,46 @@ function activate( context )
     register();
 
     context.subscriptions.push( vscode.commands.registerCommand( 'format-modified.format', format ) );
+
+    context.subscriptions.push( vscode.commands.registerCommand( 'format-modified.setConfigurationFile', function()
+    {
+        if( vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.uri.scheme === 'file' )
+        {
+            var config = vscode.workspace.getConfiguration( 'format-modified' ).get( 'configurationFileMapping' );
+            var filename = vscode.window.activeTextEditor.document.fileName;
+            var files = vscode.workspace.getConfiguration( 'format-modified' ).get( 'alternativeConfigurationFiles' );
+            var current = config[ filename ];
+            files = files.map( function( file )
+            {
+                if( file === current )
+                {
+                    return file + " (current)";
+                }
+                return file;
+            } );
+            files.unshift( USE_LOCAL_CONFIGURATION_FILE );
+            vscode.window.showQuickPick( files, { placeHolder: "Select a format file for use with this file" } ).then( function( formatFile )
+            {
+                if( formatFile === USE_LOCAL_CONFIGURATION_FILE )
+                {
+                    delete config[ filename ];
+                }
+                else
+                {
+                    config[ filename ] = formatFile;
+                }
+                vscode.workspace.getConfiguration( 'format-modified' ).update( 'configurationFileMapping', config );
+                if( fs.existsSync( formatFile ) !== true )
+                {
+                    vscode.window.showErrorMessage( "Format file not found: " + formatFile );
+                }
+            } );
+        }
+        else
+        {
+            vscode.window.showInformationMessage( "Please open a file first" );
+        }
+    } ) );
 
     context.subscriptions.push( vscode.workspace.onDidChangeConfiguration( function( e )
     {

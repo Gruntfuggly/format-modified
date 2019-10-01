@@ -1,3 +1,8 @@
+# v0.0.12 - 2019-10-01
+- Add option for format whole file
+- Allow use of local .clang-format files
+- Allow use of alternative .clang-format files by matching glob patterns
+
 # v0.0.11 - 2019-04-26
 - Fix format from command prompt
 

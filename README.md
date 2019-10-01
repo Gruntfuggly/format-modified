@@ -4,6 +4,8 @@ Formats modified sections of code on save. This is useful where you have a legac
 
 Requires git and clang-format. The location of the clang-format executable will be determined from `clang-format.executable` or `C_Cpp.clang_format_path`. If neither of these is defined, it will assume clang-format is available in your normal path.
 
+Glob patterns can also be used to specify alternative .clang-format configuration files. This allows you got further tailor the formatting of legacy code, where some files adhere to different standards, for example. This works by temporarily copying the alternative configuration file into the folder containing the file to format. If there is already a .clang-format in the folder, it will be moved out of the way while the alternative file is used.
+
 ## Installing
 
 You can install the latest version of the extension via the Visual Studio Marketplace [here](https://marketplace.visualstudio.com/items?itemName=Gruntfuggly.format-modified).
@@ -28,7 +30,26 @@ The extension will try and find the `clang-format` executable on it's own. Use t
 
 `format-modified.languages`
 
-Use this to control which files are formatted. It is set to `["cpp"]` By default, so .cpp and .h files are formatted. Use *F1* -> *Change Language Mode* to show a list of language identifiers. Java, Javascript, Objective-C, Proto are supported by clang-format, but I have not tested them.
+Use this to control which files are formatted. It is set to `["cpp"]` by default, so .cpp and .h files are formatted. Use *F1* -> *Change Language Mode* to show a list of language identifiers. Java, Javascript, Objective-C, Proto are supported by clang-format, but I have not tested them.
+
+`format-modified.configurationFileMapping`
+
+By default, clang-format will look for a configuration file (`.clang-format`) in the folder containing the file to be formatted. If no configuration file is found, it will look in the parent folder, and so forth. This can be overridden and specific configuration files can be used by defining glob patterns. For example, to set different configurations to format C++ header and body files, use something like:
+```
+"format-modified.configurationFileMapping":
+{
+    "**/*.h": "/home/user/clang-configuration-files/.clang-format.cpp-headers"
+    "**/*.cpp": "/home/user/clang-configuration-files/.clang-format.cpp-body"
+}
+```
+
+`format-modified.alternativeConfigurationFiles`
+
+To make it quicker to associate individual files with specific clang-format configuration files, you can add then to this list. You can then use the command **Format Modified: Set Configuration File** to select a configuration file from the list which will be used for the current file. *Note: This is saved in the workspace settings, not the user settings.*
+
+`format-modified.formatWholeFile`
+
+Override the default behaviour of only formatting changes. This allows the extension to be used as a standard formatter using clang format, but allows the alternative configuration files to be used.
 
 # Known issues
 

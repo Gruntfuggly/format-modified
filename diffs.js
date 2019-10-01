@@ -11,7 +11,7 @@ function DiffsError( error, stderr )
     this.stderr = stderr;
 }
 
-module.exports.fetch = function run( document, options, tempFolder, tidy )
+module.exports.fetch = function run( document, options, tempFolder )
 {
     function debug( text )
     {
@@ -23,75 +23,85 @@ module.exports.fetch = function run( document, options, tempFolder, tidy )
 
     return new Promise( function( resolve, reject )
     {
-        var filePath = document.fileName;
-        var folder = path.dirname( filePath );
-        var name = path.basename( filePath );
-
-        try
+        if( vscode.workspace.getConfiguration( 'format-modified' ).get( 'formatWholeFile' ) )
         {
-            var relativePath = childProcess.execSync( "git ls-files --full-name " + filePath, { cwd: folder } ).toString().trim();
-            debug( "Relative path: " + relativePath );
-
-            if( relativePath !== "" )
-            {
-                var tempFileName = path.join( tempFolder, name );
-
-                fs.writeFileSync( tempFileName, document.getText() );
-
-                var differences = "";
-                debug( "Fetching diffs for " + name + " in " + folder );
-                var command = "git show :" + relativePath + " | git diff -U0 --no-index --exit-code --no-color -- - " + tempFileName;
-                var fetchDiffsProcess = childProcess.exec( command, { cwd: folder } );
-                fetchDiffsProcess.stdout.on( 'data', function( data )
-                {
-                    differences += data;
-                } );
-                fetchDiffsProcess.stderr.on( 'data', function( data )
-                {
-                    debug( "Fetch diffs error: " + data );
-                    tidy();
-                    reject( new DiffsError( data, "" ) );
-                } );
-                fetchDiffsProcess.on( 'close', function( code )
-                {
-                    if( fs.existsSync( tempFileName ) )
-                    {
-                        fs.unlinkSync( tempFileName );
-                    }
-
-                    var parsedDiffs = parse( differences );
-                    var rangeArguments = [];
-                    if( parsedDiffs && parsedDiffs.length > 0 )
-                    {
-                        parsedDiffs[ 0 ].chunks.map( function( chunk )
-                        {
-                            rangeArguments.push( "-lines=" + ( chunk.newStart + ":" + ( chunk.newStart + chunk.newLines ) ) );
-                        } );
-                    }
-
-                    if( rangeArguments.length > 0 )
-                    {
-                        debug( "Ranges: " + rangeArguments );
-                        resolve( formatter.format( document, rangeArguments, options, tidy ) );
-                    }
-                    else
-                    {
-                        debug( "No differences" );
-                        tidy();
-                        reject( new DiffsError( "No differences found?", "" ) );
-                    }
-                } );
-            }
-            else
-            {
-                debug( "File not in git, so formatting the whole document" );
-                resolve( formatter.format( document, [], options, tidy ) );
-            }
+            debug( "Formatting the whole file" );
+            resolve( formatter.format( document, [], options ) );
         }
-        catch( e )
+        else
         {
-            debug( "File not in git, so formatting the whole document" );
-            resolve( formatter.format( document, [], options, tidy ) );
+            var filePath = document.fileName;
+            var folder = path.dirname( filePath );
+            var name = path.basename( filePath );
+
+            try
+            {
+                var relativePath = childProcess.execSync( "git ls-files --full-name " + filePath, { cwd: folder } ).toString().trim();
+                debug( "Relative path: " + relativePath );
+
+                if( relativePath !== "" )
+                {
+                    var tempFileName = path.join( tempFolder, name );
+
+                    fs.writeFileSync( tempFileName, document.getText() );
+
+                    if( process.platform !== 'win32' )
+                    {
+                        tempFileName = tempFileName.replace( /(\s+)/g, '\\$1' );
+                    }
+
+                    var differences = "";
+                    var command = "git show :" + relativePath + " | git diff -U0 --no-index --exit-code --no-color -- - " + tempFileName;
+                    debug( "Fetching diffs for " + name + " in " + folder + " using:" );
+                    debug( " " + command );
+                    var fetchDiffsProcess = childProcess.exec( command, { cwd: folder } );
+                    fetchDiffsProcess.stdout.on( 'data', function( data )
+                    {
+                        differences += data;
+                    } );
+                    fetchDiffsProcess.stderr.on( 'data', function( data )
+                    {
+                        reject( new DiffsError( "Failed to fetch diffs", data ) );
+                    } );
+                    fetchDiffsProcess.on( 'close', function( code )
+                    {
+                        if( fs.existsSync( tempFileName ) )
+                        {
+                            fs.unlinkSync( tempFileName );
+                        }
+
+                        var parsedDiffs = parse( differences );
+                        var rangeArguments = [];
+                        if( parsedDiffs && parsedDiffs.length > 0 )
+                        {
+                            parsedDiffs[ 0 ].chunks.map( function( chunk )
+                            {
+                                rangeArguments.push( "-lines=" + ( chunk.newStart + ":" + ( chunk.newStart + chunk.newLines ) ) );
+                            } );
+                        }
+
+                        if( rangeArguments.length > 0 )
+                        {
+                            resolve( formatter.format( document, rangeArguments, options ) );
+                        }
+                        else
+                        {
+                            reject( new DiffsError( "No differences found?", "" ) );
+                        }
+                    } );
+                }
+                else
+                {
+                    debug( "File not in git, so formatting the whole file" );
+                    resolve( formatter.format( document, [], options ) );
+                }
+            }
+            catch( e )
+            {
+                debug( e );
+                debug( "Formatting the whole file" );
+                resolve( formatter.format( document, [], options ) );
+            }
         }
     } );
 };
