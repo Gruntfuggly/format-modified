@@ -2,9 +2,15 @@
 
 Formats modified sections of code on save. This is useful where you have a legacy codebase where you want to only format code changes and new code.
 
-Requires git and clang-format. The location of the clang-format executable will be determined from `clang-format.executable` or `C_Cpp.clang_format_path`. If neither of these is defined, it will assume clang-format is available in your normal path.
+Requires git and clang-format. The location of the clang-format executable will be determined from `clang-format.executable` or `C_Cpp.clang_format_path`. If neither of these is defined, it will assume clang-format is available in your normal path. Alternatively, you can specify the location of the executable in the settings.
 
-Glob patterns can also be used to specify alternative .clang-format configuration files. This allows you got further tailor the formatting of legacy code, where some files adhere to different standards, for example. This works by temporarily copying the alternative configuration file into the folder containing the file to format. If there is already a .clang-format in the folder, it will be moved out of the way while the alternative file is used.
+Glob patterns can also be used to specify alternative clang-format configuration files. This allows you got further tailor the formatting of legacy code, where some files may need to adhere to different standards, for example. This works by temporarily copying an alternative configuration file into the folder containing the file to format, and renaming it to `.clang-format`. If there is already a `.clang-format` in the folder, it will be moved out of the way while the alternative file is used.
+
+## Commands
+
+Normally the extension will work as a standard formatter for the file types configured in `format-modified.languages`. Formatting can also be applied manually by using the command **Format Modified Sections**.
+
+The command **Set Configuration File** can be used to set an alternative configuration file for the current file in the editor. This will show a list of configurations files (which can be set in the settings).
 
 ## Installing
 
@@ -49,11 +55,11 @@ To make it quicker to associate individual files with specific clang-format conf
 
 `format-modified.formatWholeFile`
 
-Override the default behaviour of only formatting changes. This allows the extension to be used as a standard formatter using clang format, but allows the alternative configuration files to be used.
+Override the default behaviour of only formatting modified parts of the file. This allows the extension to be used as a standard formatter using clang format, but allows the alternative configuration files to be used.
 
 # Known issues
 
-clang-format insists on formatting the line after any specified ranges of lines, even if only a single line is specified.
+clang-format sometimes insists on formatting the line after any specified ranges of lines, even if only a single line is specified.
 
 # Credits
 
