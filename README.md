@@ -6,6 +6,8 @@ Requires git and clang-format. The location of the clang-format executable will 
 
 Glob patterns can also be used to specify alternative clang-format configuration files. This allows you got further tailor the formatting of legacy code, where some files may need to adhere to different standards, for example. This works by temporarily copying an alternative configuration file into the folder containing the file to format, and renaming it to `.clang-format`. If there is already a `.clang-format` in the folder, it will be moved out of the way while the alternative file is used.
 
+*Note: Determining the modified sections may take longer than a simple format, so you may mind that no formatting appears to happen. If this is the case, you should try increasing your `editor.formatOnSaveTimeout` setting. The extension will try to detect this automatically and prompt if required. You can also enable the debug log (see* `format-modified.debug` *below) to see how long the format is taking.*
+
 ## Commands
 
 Normally the extension will work as a standard formatter for the file types configured in `format-modified.languages`. Formatting can also be applied manually by using the command **Format Modified Sections**.
@@ -28,7 +30,7 @@ The source code is available on GitHub [here](https://github.com/Gruntfuggly/for
 
 `format-modified.debug`
 
-Enable this to create an output channel showing information for debugging purposes.
+Enable this to create an output channel showing information for debugging purposes. To open the output channel, select **Output** from the **View** menu and then choose **Format Modified** from the drop down.
 
 `format-modified.executable`
 

@@ -1,3 +1,7 @@
+# v0.0.13 - 2019-10-03
+- Improve tidying up after formatting
+- Prompt user to increase save abort timeout if formatting takes too long
+
 # v0.0.12 - 2019-10-01
 - Add option for format whole file
 - Allow use of local .clang-format files
