@@ -61,7 +61,7 @@ function activate( context )
                         if( fs.existsSync( formatContext.formatFilePath ) )
                         {
                             debug( "Preserving current .clang-format" );
-                            formatContext.backupFormatFilePath = formatFilePath + '.' + crypto.randomBytes( 4 ).readUInt32LE();
+                            formatContext.backupFormatFilePath = formatContext.formatFilePath + '.' + crypto.randomBytes( 4 ).readUInt32LE();
                             fs.renameSync( formatContext.formatFilePath, formatContext.backupFormatFilePath );
                         }
 
@@ -204,7 +204,7 @@ function activate( context )
             var filename = vscode.window.activeTextEditor.document.fileName;
             var files = vscode.workspace.getConfiguration( 'format-modified' ).get( 'alternativeConfigurationFiles' );
             var current = config[ filename ];
-            files = files.map( function( file )
+            var options = files.map( function( file )
             {
                 if( file === current )
                 {
@@ -212,8 +212,8 @@ function activate( context )
                 }
                 return file;
             } );
-            files.unshift( USE_LOCAL_CONFIGURATION_FILE );
-            vscode.window.showQuickPick( files, { placeHolder: "Select a format file for use with this file" } ).then( function( formatFile )
+            options.unshift( USE_LOCAL_CONFIGURATION_FILE );
+            vscode.window.showQuickPick( options, { placeHolder: "Select a format file for use with this file" } ).then( function( formatFile )
             {
                 if( formatFile === USE_LOCAL_CONFIGURATION_FILE )
                 {
@@ -221,7 +221,7 @@ function activate( context )
                 }
                 else
                 {
-                    config[ filename ] = formatFile;
+                    config[ filename ] = files[ options.indexOf( formatFile ) - 1 ];
                 }
                 vscode.workspace.getConfiguration( 'format-modified' ).update( 'configurationFileMapping', config );
                 if( fs.existsSync( formatFile ) !== true )
