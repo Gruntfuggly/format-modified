@@ -1,3 +1,6 @@
+# v0.0.14 - 2019-10-04
+- Don't check configuration file exists when user selects 'none'
+
 # v0.0.13 - 2019-10-03
 - Improve tidying up after formatting
 - Prompt user to increase save abort timeout if formatting takes too long

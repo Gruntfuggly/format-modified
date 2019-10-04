@@ -253,12 +253,12 @@ function activate( context )
                 else
                 {
                     config[ filename ] = files[ options.indexOf( formatFile ) - 1 ];
+                    if( fs.existsSync( formatFile ) !== true )
+                    {
+                        vscode.window.showErrorMessage( "Format file not found: " + formatFile );
+                    }
                 }
                 vscode.workspace.getConfiguration( 'format-modified' ).update( 'configurationFileMapping', config );
-                if( fs.existsSync( formatFile ) !== true )
-                {
-                    vscode.window.showErrorMessage( "Format file not found: " + formatFile );
-                }
             } );
         }
         else
