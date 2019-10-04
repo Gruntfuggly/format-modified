@@ -1,6 +1,8 @@
 var childProcess = require( 'child_process' );
 var vscode = require( 'vscode' );
+var fs = require( 'fs' );
 var path = require( 'path' );
+var yamljs = require( 'yamljs' );
 
 function FormatError( error, stderr )
 {
@@ -33,7 +35,16 @@ module.exports.format = function run( document, rangeArguments, options )
     var cwd = path.dirname( document.fileName );
 
     var formatArguments = [];
-    formatArguments.push( "-style=file" );
+
+    if( options.configurationFile )
+    {
+        var style = yamljs.parse( fs.readFileSync( options.configurationFile, 'utf8' ) );
+        formatArguments.push( "-style=" + yamljs.stringify( style, 0 ) );
+    }
+    else
+    {
+        formatArguments.push( "-style=file" );
+    }
     formatArguments = formatArguments.concat( rangeArguments );
 
     debug( "Formatting using:" );

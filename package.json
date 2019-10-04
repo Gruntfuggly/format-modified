@@ -1,86 +1,88 @@
 {
-    "name": "format-modified",
-    "displayName": "Format Modified",
-    "description": "Format modified sections of files",
-    "icon": "resources/icon.png",
-    "version": "0.0.14",
-    "publisher": "Gruntfuggly",
-    "repository": "https://github.com/Gruntfuggly/format-modified",
-    "engines": {
-        "vscode": "^1.5.0"
-    },
-    "categories": [
-        "Formatters"
+  "name": "format-modified",
+  "displayName": "Format Modified",
+  "description": "Format modified sections of files",
+  "icon": "resources/icon.png",
+  "version": "0.0.14",
+  "publisher": "Gruntfuggly",
+  "repository": "https://github.com/Gruntfuggly/format-modified",
+  "engines": {
+    "vscode": "^1.5.0"
+  },
+  "categories": [
+    "Formatters"
+  ],
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./extension",
+  "contributes": {
+    "commands": [
+      {
+        "command": "format-modified.format",
+        "title": "Format modified sections",
+        "category": "Format Modified"
+      },
+      {
+        "command": "format-modified.setConfigurationFile",
+        "title": "Set Configuration File",
+        "category": "Format Modified"
+      }
     ],
-    "activationEvents": [
-        "*"
-    ],
-    "main": "./extension",
-    "contributes": {
-        "commands": [
-            {
-                "command": "format-modified.format",
-                "title": "Format modified sections",
-                "category": "Format Modified"
-            },
-            {
-                "command": "format-modified.setConfigurationFile",
-                "title": "Set Configuration File",
-                "category": "Format Modified"
-            }
-        ],
-        "configuration": {
-            "type": "object",
-            "title": "Format Modified",
-            "properties": {
-                "format-modified.debug": {
-                    "type": "boolean",
-                    "markdownDescription": "Set to true to create an output channel showing debug information",
-                    "default": false
-                },
-                "format-modified.executable": {
-                    "type": "string",
-                    "markdownDescription": "Location of clang-format executable"
-                },
-                "format-modified.formatWholeFile": {
-                    "type": "boolean",
-                    "markdownDescription": "Set to true to force the whole file to be formatted",
-                    "default": false
-                },
-                "format-modified.languages": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "markdownDescription": "Languages which should be formatted (Use *F1* -> *Change Language Mode* to show a list)",
-                    "default": [
-                        "cpp"
-                    ],
-                    "pattern": "(cpp|c|objective-c|objective-cpp|java|javascript|typescript|proto)"
-                },
-                "format-modified.configurationFileMapping": {
-                    "type": "object",
-                    "markdownDescription": "Globs to apply alternative .clang-format files",
-                    "default": {}
-                },
-                "format-modified.alternativeConfigurationFiles": {
-                    "type": "array",
-                    "markdownDescription": "A list of alternative .clang-format files which can be associated with a file using the Set Format File command",
-                    "items": {
-                        "type": "string"
-                    },
-                    "default": []
-                }
-            }
+    "configuration": {
+      "type": "object",
+      "title": "Format Modified",
+      "properties": {
+        "format-modified.debug": {
+          "type": "boolean",
+          "markdownDescription": "Set to true to create an output channel showing debug information",
+          "default": false
+        },
+        "format-modified.executable": {
+          "type": "string",
+          "markdownDescription": "Location of clang-format executable"
+        },
+        "format-modified.formatWholeFile": {
+          "type": "boolean",
+          "markdownDescription": "Set to true to force the whole file to be formatted",
+          "default": false
+        },
+        "format-modified.languages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "markdownDescription": "Languages which should be formatted (Use *F1* -> *Change Language Mode* to show a list)",
+          "default": [
+            "cpp"
+          ],
+          "pattern": "(cpp|c|objective-c|objective-cpp|java|javascript|typescript|proto)"
+        },
+        "format-modified.configurationFileMapping": {
+          "type": "object",
+          "markdownDescription": "Globs to apply alternative .clang-format files",
+          "default": {}
+        },
+        "format-modified.alternativeConfigurationFiles": {
+          "type": "array",
+          "markdownDescription": "A list of alternative .clang-format files which can be associated with a file using the Set Format File command",
+          "items": {
+            "type": "string"
+          },
+          "default": []
         }
-    },
-    "dependencies": {
-        "micromatch": "^4.0.2",
-        "parse-diff": "^0.5.1"
-    },
-    "__metadata": {
-        "id": "8e4d7336-2a86-4693-9e29-8dba19a92732",
-        "publisherDisplayName": "Gruntfuggly",
-        "publisherId": "d4906d2e-f2ee-492d-9c7c-02b6160599ec"
+      }
     }
+  },
+  "dependencies": {
+    "js-yaml": "^3.13.1",
+    "micromatch": "^4.0.2",
+    "parse-diff": "^0.5.1",
+    "yamljs": "^0.3.0"
+  },
+  "__metadata": {
+    "id": "8e4d7336-2a86-4693-9e29-8dba19a92732",
+    "publisherDisplayName": "Gruntfuggly",
+    "publisherId": "d4906d2e-f2ee-492d-9c7c-02b6160599ec"
+  }
 }

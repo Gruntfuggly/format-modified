@@ -1,7 +1,5 @@
 
 var fs = require( 'fs' );
-var path = require( 'path' );
-var crypto = require( 'crypto' );
 var vscode = require( 'vscode' );
 var micromatch = require( 'micromatch' );
 var diffs = require( './diffs.js' );
@@ -12,8 +10,6 @@ function activate( context )
 {
     var outputChannel;
     var provider;
-
-    var formatContext = {};
 
     function resetOutputChannel()
     {
@@ -37,73 +33,33 @@ function activate( context )
         }
     }
 
-    function setContext( document )
+    function getConfigurationFile( document )
     {
-        var formatContext = {};
+        var configurationFile;
 
         if( document && document.uri.scheme === 'file' )
         {
-            formatContext.formatFilePath = path.join( path.dirname( document.fileName ), '.clang-format' );
-            formatContext.backupFormatFilePath = undefined;
-            formatContext.alternativeFormatFilePath = undefined;
-
             var config = vscode.workspace.getConfiguration( 'format-modified' ).get( 'configurationFileMapping' );
 
-            return new Promise( function( resolve, reject )
+            Object.keys( config ).map( function( glob )
             {
-                try
+                if( config.hasOwnProperty( glob ) )
                 {
-                    Object.keys( config ).map( function( glob )
+                    if( micromatch.isMatch( document.fileName, glob ) )
                     {
-                        if( config.hasOwnProperty( glob ) )
-                        {
-                            if( micromatch.isMatch( document.fileName, glob ) )
-                            {
-                                formatContext.alternativeFormatFilePath = config[ glob ];
+                        configurationFile = config[ glob ];
 
-                                debug( "Using alternative configuration file: " + formatContext.alternativeFormatFilePath );
-
-                                if( fs.existsSync( formatContext.formatFilePath ) )
-                                {
-                                    debug( "Preserving current .clang-format" );
-                                    formatContext.backupFormatFilePath = formatContext.formatFilePath + '.' + crypto.randomBytes( 4 ).readUInt32LE();
-                                    fs.renameSync( formatContext.formatFilePath, formatContext.backupFormatFilePath );
-                                }
-
-                                fs.copyFileSync( formatContext.alternativeFormatFilePath, formatContext.formatFilePath );
-                            }
-                        }
-                    } );
-
-                    resolve( formatContext );
-                }
-                catch( e )
-                {
-                    debug( e );
-                    reject();
+                        debug( "Using alternative configuration file: " + configurationFile );
+                    }
                 }
             } );
         }
+
+        return configurationFile;
     }
 
     function format( document )
     {
-        function tidy( formatContext )
-        {
-            if( formatContext.backupFormatFilePath )
-            {
-                debug( "Restoring original .clang-format" );
-                fs.renameSync( formatContext.backupFormatFilePath, formatContext.formatFilePath );
-            }
-            else if( formatContext.alternativeFormatFilePath )
-            {
-                debug( "Removing alternative .clang-format" );
-                fs.unlinkSync( formatContext.formatFilePath );
-            }
-
-            debug( "Finished" );
-        }
-
         var options = { outputChannel: outputChannel };
         try
         {
@@ -116,57 +72,50 @@ function activate( context )
             {
                 return new Promise( function( resolve, reject )
                 {
-                    setContext( document ).then( function( formatContext )
+                    options.configurationFile = getConfigurationFile( document );
+
+                    diffs.fetch( document, options, context.globalStoragePath ).then( function( edits )
                     {
-                        diffs.fetch( document, options, context.globalStoragePath ).then( function( edits )
-                        {
-                            resolve( edits );
-                            tidy( formatContext );
-                        } ).catch( function( error )
-                        {
-                            debug( error.message );
-                            debug( error.stderr );
-                            vscode.window.showErrorMessage( error.message );
-                            tidy( formatContext );
-                        } );
-                    } );
-                } );
-            }
-            else
-            {
-                setContext( vscode.window.activeTextEditor.document ).then( function( formatContext )
-                {
-                    var previousPosition = vscode.window.activeTextEditor.selection.active;
-
-                    diffs.fetch( vscode.window.activeTextEditor.document, options, context.globalStoragePath ).then( function( edits )
-                    {
-                        var workspaceEdit = new vscode.WorkspaceEdit();
-                        workspaceEdit.set(
-                            vscode.window.activeTextEditor.document.uri,
-                            edits );
-
-                        vscode.workspace.applyEdit( workspaceEdit ).then( function()
-                        {
-                            debug( "Restoring previous cursor position" );
-                            vscode.window.activeTextEditor.selection = new vscode.Selection( previousPosition, previousPosition );
-                            debug( "OK" );
-                        } );
-
-                        tidy( formatContext );
+                        resolve( edits );
                     } ).catch( function( error )
                     {
                         debug( error.message );
                         debug( error.stderr );
                         vscode.window.showErrorMessage( error.message );
-                        tidy( formatContext );
                     } );
+                } );
+            }
+            else
+            {
+                options.configurationFile = getConfigurationFile( vscode.window.activeTextEditor.document );
+
+                var previousPosition = vscode.window.activeTextEditor.selection.active;
+
+                diffs.fetch( vscode.window.activeTextEditor.document, options, context.globalStoragePath ).then( function( edits )
+                {
+                    var workspaceEdit = new vscode.WorkspaceEdit();
+                    workspaceEdit.set(
+                        vscode.window.activeTextEditor.document.uri,
+                        edits );
+
+                    vscode.workspace.applyEdit( workspaceEdit ).then( function()
+                    {
+                        debug( "Restoring previous cursor position" );
+                        vscode.window.activeTextEditor.selection = new vscode.Selection( previousPosition, previousPosition );
+                        debug( "OK" );
+                    } );
+
+                } ).catch( function( error )
+                {
+                    debug( error.message );
+                    debug( error.stderr );
+                    vscode.window.showErrorMessage( error.message );
                 } );
             }
         }
         catch( e )
         {
             debug( e );
-            tidy();
             return [];
         }
     }
@@ -190,7 +139,7 @@ function activate( context )
         provider = vscode.languages.registerDocumentFormattingEditProvider( documentSelector, {
             provideDocumentFormattingEdits( document )
             {
-                debug( "Formatter triggered..." );
+                debug( "\nFormatter triggered..." );
 
                 var started = new Date();
 
