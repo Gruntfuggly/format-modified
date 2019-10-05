@@ -10,16 +10,8 @@ function FormatError( error, stderr )
     this.stderr = stderr;
 }
 
-module.exports.format = function run( document, rangeArguments, options )
+module.exports.format = function run( options, document, rangeArguments )
 {
-    function debug( text )
-    {
-        if( options && options.outputChannel )
-        {
-            options.outputChannel.appendLine( text );
-        }
-    }
-
     var clangFormatConfig = vscode.workspace.getConfiguration( 'clang-format' );
     var clangFormat = clangFormatConfig && clangFormatConfig.executable;
     if( !clangFormat || clangFormat === "clang-format" )
@@ -47,9 +39,9 @@ module.exports.format = function run( document, rangeArguments, options )
     }
     formatArguments = formatArguments.concat( rangeArguments );
 
-    debug( "Formatting using:" );
-    debug( " " + clangFormat + " " + formatArguments.join( " " ) );
-    debug( "in folder " + cwd );
+    options.debug( "Formatting using:", options );
+    options.debug( " " + clangFormat + " " + formatArguments.join( " " ), options );
+    options.debug( "in folder " + cwd, options );
 
     return new Promise( function( resolve, reject )
     {
@@ -76,7 +68,7 @@ module.exports.format = function run( document, rangeArguments, options )
             var end = document.positionAt( document.getText().length );
             var editRange = new vscode.Range( start, end );
             edits.push( new vscode.TextEdit( editRange, formattedFile ) );
-            debug( "Format complete" );
+            options.debug( "Format complete", options );
             resolve( edits );
         } );
         formatFileProcess.stdin.write( document.getText() );

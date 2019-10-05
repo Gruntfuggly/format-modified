@@ -4,6 +4,7 @@ var vscode = require( 'vscode' );
 var micromatch = require( 'micromatch' );
 var diffs = require( './diffs.js' );
 
+var jobNumber = 1;
 var USE_LOCAL_CONFIGURATION_FILE = 'none (find .clang-format)';
 
 function activate( context )
@@ -25,15 +26,15 @@ function activate( context )
         }
     }
 
-    function debug( text )
+    function debug( text, options )
     {
         if( outputChannel )
         {
-            outputChannel.appendLine( text );
+            outputChannel.appendLine( options && options.jobNumber ? ( options.jobNumber + "> " + text ) : text );
         }
     }
 
-    function getConfigurationFile( document )
+    function getConfigurationFile( options, document )
     {
         var configurationFile;
 
@@ -49,7 +50,7 @@ function activate( context )
                     {
                         configurationFile = config[ glob ];
 
-                        debug( "Using alternative configuration file: " + configurationFile );
+                        debug( "Using alternative configuration file: " + configurationFile, options );
                     }
                 }
             } );
@@ -58,9 +59,13 @@ function activate( context )
         return configurationFile;
     }
 
-    function format( document )
+    function format( options, document )
     {
-        var options = { outputChannel: outputChannel };
+        if( !options )
+        {
+            options = { debug: debug, jobNumber: jobNumber++ };
+        }
+
         try
         {
             if( !fs.existsSync( context.globalStoragePath ) )
@@ -72,26 +77,26 @@ function activate( context )
             {
                 return new Promise( function( resolve, reject )
                 {
-                    options.configurationFile = getConfigurationFile( document );
+                    options.configurationFile = getConfigurationFile( options, document );
 
-                    diffs.fetch( document, options, context.globalStoragePath ).then( function( edits )
+                    diffs.fetch( options, document, context.globalStoragePath ).then( function( edits )
                     {
                         resolve( edits );
                     } ).catch( function( error )
                     {
-                        debug( error.message );
-                        debug( error.stderr );
+                        debug( error.message, options );
+                        debug( error.stderr, options );
                         vscode.window.showErrorMessage( error.message );
                     } );
                 } );
             }
             else
             {
-                options.configurationFile = getConfigurationFile( vscode.window.activeTextEditor.document );
+                options.configurationFile = getConfigurationFile( options, vscode.window.activeTextEditor.document );
 
                 var previousPosition = vscode.window.activeTextEditor.selection.active;
 
-                diffs.fetch( vscode.window.activeTextEditor.document, options, context.globalStoragePath ).then( function( edits )
+                diffs.fetch( options, vscode.window.activeTextEditor.document, context.globalStoragePath ).then( function( edits )
                 {
                     var workspaceEdit = new vscode.WorkspaceEdit();
                     workspaceEdit.set(
@@ -100,22 +105,22 @@ function activate( context )
 
                     vscode.workspace.applyEdit( workspaceEdit ).then( function()
                     {
-                        debug( "Restoring previous cursor position" );
+                        debug( "Restoring previous cursor position", options );
                         vscode.window.activeTextEditor.selection = new vscode.Selection( previousPosition, previousPosition );
-                        debug( "OK" );
+                        debug( "OK", options );
                     } );
 
                 } ).catch( function( error )
                 {
-                    debug( error.message );
-                    debug( error.stderr );
+                    debug( error.message, options );
+                    debug( error.stderr, options );
                     vscode.window.showErrorMessage( error.message );
                 } );
             }
         }
         catch( e )
         {
-            debug( e );
+            debug( e, options );
             return [];
         }
     }
@@ -137,19 +142,21 @@ function activate( context )
         debug( "Supported languages: " + JSON.stringify( documentSelector ) );
 
         provider = vscode.languages.registerDocumentFormattingEditProvider( documentSelector, {
-            provideDocumentFormattingEdits( document )
+            provideDocumentFormattingEdits: function( document )
             {
-                debug( "\nFormatter triggered..." );
+                var options = { debug: debug, jobNumber: jobNumber++ };
+
+                debug( "Formatter triggered for " + document.fileName, options );
 
                 var started = new Date();
 
                 return new Promise( function( resolve, reject )
                 {
-                    format( document ).then( function( edits )
+                    format( options, document ).then( function( edits )
                     {
                         var elapsedTime = new Date() - started;
 
-                        debug( "Elapsed time:" + elapsedTime + "ms" );
+                        debug( "Elapsed time:" + elapsedTime + "ms", options );
                         if( elapsedTime > vscode.workspace.getConfiguration( 'editor' ).get( 'formatOnSaveTimeout' ) )
                         {
                             var message = "Formatting took too long (" + elapsedTime + "ms).";

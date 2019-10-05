@@ -1,3 +1,7 @@
+# v0.0.15 - 2019-10-05
+- Use alternative configuration files in a much more sensible way
+- Add job number to debug output
+
 # v0.0.14 - 2019-10-04
 - Don't check configuration file exists when user selects 'none'
 
