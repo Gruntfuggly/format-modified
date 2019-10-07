@@ -1,3 +1,4 @@
+# v0.0.17 - 2019-10-07
 - Fix configuration file check
 - Improve handling of alternative configuration files
 
