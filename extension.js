@@ -41,9 +41,12 @@ function activate( context )
         if( document && document.uri.scheme === 'file' )
         {
             var config = vscode.workspace.getConfiguration( 'format-modified' ).get( 'configurationFileMapping' );
+            var globs = Object.keys( config );
 
-            Object.keys( config ).map( function( glob )
+            for( var i = 0; i < globs.length; ++i )
             {
+                var glob = globs[i];
+
                 if( config.hasOwnProperty( glob ) )
                 {
                     if( micromatch.isMatch( document.fileName, glob ) )
@@ -51,9 +54,10 @@ function activate( context )
                         configurationFile = config[ glob ];
 
                         debug( "Using alternative configuration file: " + configurationFile, options );
+                        break;
                     }
                 }
-            } );
+            }
         }
 
         return configurationFile;

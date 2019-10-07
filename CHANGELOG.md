@@ -1,3 +1,6 @@
+# v0.0.16 - 2019-10-07
+- Stop searching for alternative configuration files when first glob matched
+
 # v0.0.15 - 2019-10-05
 - Use alternative configuration files in a much more sensible way
 - Add job number to debug output
