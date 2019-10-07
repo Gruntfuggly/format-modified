@@ -45,7 +45,7 @@ function activate( context )
 
             for( var i = 0; i < globs.length; ++i )
             {
-                var glob = globs[i];
+                var glob = globs[ i ];
 
                 if( config.hasOwnProperty( glob ) )
                 {
@@ -206,16 +206,17 @@ function activate( context )
             options.unshift( USE_LOCAL_CONFIGURATION_FILE );
             vscode.window.showQuickPick( options, { placeHolder: "Select a format file for use with this file" } ).then( function( formatFile )
             {
+                var configurationFilename = files[ options.indexOf( formatFile ) - 1 ];
                 if( formatFile === USE_LOCAL_CONFIGURATION_FILE )
                 {
                     delete config[ filename ];
                 }
                 else
                 {
-                    config[ filename ] = files[ options.indexOf( formatFile ) - 1 ];
-                    if( fs.existsSync( formatFile ) !== true )
+                    config[ filename ] = configurationFilename;
+                    if( fs.existsSync( configurationFilename ) !== true )
                     {
-                        vscode.window.showErrorMessage( "Format file not found: " + formatFile );
+                        vscode.window.showErrorMessage( "Format file not found: " + configurationFilename );
                     }
                 }
                 vscode.workspace.getConfiguration( 'format-modified' ).update( 'configurationFileMapping', config );
