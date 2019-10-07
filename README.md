@@ -53,11 +53,19 @@ By default, clang-format will look for a configuration file (`.clang-format`) in
 
 `format-modified.alternativeConfigurationFiles`
 
-To make it quicker to associate individual files with specific clang-format configuration files, you can add then to this list. You can then use the command **Format Modified: Set Configuration File** to select a configuration file from the list which will be used for the current file. *Note: This is saved in the workspace settings, not the user settings.*
+To make it quicker to associate individual files with specific clang-format configuration files, you can add then to this list. You can then use the command **Format Modified: Set Configuration File** to select a configuration file from the list which will be used for the current file (*see Notes below*).
 
 `format-modified.formatWholeFile`
 
 Override the default behaviour of only formatting modified parts of the file. This allows the extension to be used as a standard formatter using clang format, but allows the alternative configuration files to be used.
+
+### Notes
+
+Using the **Format Modified: Set Configuration File** will update `format-modified.configurationFileMapping` your *Workspace settings*. Globs which match multiple files should be defined in your *User settings*.
+
+When looking for alternative configurations, the combined settings are searched for an exact filename match first. If no exact match is found, the filename is matched against the globs.
+
+You can organise the settings as you wish, but the **Format Modified: Set Configuration File** will always attempt to update the *Workspace Settings*.
 
 # Known issues
 

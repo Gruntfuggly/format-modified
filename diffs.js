@@ -17,7 +17,7 @@ module.exports.fetch = function run( options, document, tempFolder )
     {
         if( vscode.workspace.getConfiguration( 'format-modified' ).get( 'formatWholeFile' ) )
         {
-            options.debug( "Formatting the whole file" , options);
+            options.debug( "Formatting the whole file", options );
             resolve( formatter.format( document, [], options ) );
         }
         else
@@ -29,7 +29,7 @@ module.exports.fetch = function run( options, document, tempFolder )
             try
             {
                 var relativePath = childProcess.execSync( "git ls-files --full-name " + filePath, { cwd: folder } ).toString().trim();
-                options.debug( "Relative path: " + relativePath , options);
+                options.debug( "Relative path: " + relativePath, options );
 
                 if( relativePath !== "" )
                 {
@@ -44,8 +44,10 @@ module.exports.fetch = function run( options, document, tempFolder )
 
                     var differences = "";
                     var command = "git show :" + relativePath + " | git diff -U0 --no-index --exit-code --no-color -- - " + tempFileName;
-                    options.debug("Fetching diffs for " + name + " in " + folder + " using:" , options);
-                    options.debug( " " + command , options);
+
+                    options.debug( "Fetching diffs for " + name + " in " + folder + " using:", options );
+                    options.debug( " " + command, options );
+
                     var fetchDiffsProcess = childProcess.exec( command, { cwd: folder } );
                     fetchDiffsProcess.stdout.on( 'data', function( data )
                     {
@@ -74,7 +76,7 @@ module.exports.fetch = function run( options, document, tempFolder )
 
                         if( rangeArguments.length > 0 )
                         {
-                            resolve( formatter.format( options , document, rangeArguments) );
+                            resolve( formatter.format( options, document, rangeArguments ) );
                         }
                         else
                         {
@@ -84,15 +86,15 @@ module.exports.fetch = function run( options, document, tempFolder )
                 }
                 else
                 {
-                    options.debug( "File not in git, so formatting the whole file", options,  );
-                    resolve( formatter.format( options , document, []) );
+                    options.debug( "File not in git, so formatting the whole file", options );
+                    resolve( formatter.format( options, document, [] ) );
                 }
             }
             catch( e )
             {
-                options.debug( e , options);
-                options.debug( "Formatting the whole file" , options);
-                resolve( formatter.format( options , document, []) );
+                options.debug( e, options );
+                options.debug( "Formatting the whole file", options );
+                resolve( formatter.format( options, document, [] ) );
             }
         }
     } );

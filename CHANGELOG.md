@@ -1,3 +1,6 @@
+- Fix configuration file check
+- Improve handling of alternative configuration files
+
 # v0.0.16 - 2019-10-07
 - Stop searching for alternative configuration files when first glob matched
 

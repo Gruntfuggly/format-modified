@@ -1,4 +1,3 @@
-
 var fs = require( 'fs' );
 var vscode = require( 'vscode' );
 var micromatch = require( 'micromatch' );
@@ -36,13 +35,24 @@ function activate( context )
 
     function getConfigurationFile( options, document )
     {
-        var configurationFile;
-
-        if( document && document.uri.scheme === 'file' )
+        function findExactMatch()
         {
-            var config = vscode.workspace.getConfiguration( 'format-modified' ).get( 'configurationFileMapping' );
-            var globs = Object.keys( config );
+            for( var i = 0; i < globs.length; ++i )
+            {
+                var glob = globs[ i ];
 
+                if( config.hasOwnProperty( glob ) && document.fileName === glob )
+                {
+                    debug( "Matched glob: " + glob, options );
+                    configurationFile = config[ glob ];
+
+                    debug( "Using alternative configuration file: " + configurationFile, options );
+                }
+            }
+        }
+
+        function findAnyMatch()
+        {
             for( var i = 0; i < globs.length; ++i )
             {
                 var glob = globs[ i ];
@@ -51,12 +61,27 @@ function activate( context )
                 {
                     if( micromatch.isMatch( document.fileName, glob ) )
                     {
+                        debug( "Matched glob: " + glob, options );
                         configurationFile = config[ glob ];
 
                         debug( "Using alternative configuration file: " + configurationFile, options );
                         break;
                     }
                 }
+            }
+        }
+
+        var configurationFile;
+
+        if( document && document.uri.scheme === 'file' )
+        {
+            var config = vscode.workspace.getConfiguration( 'format-modified' ).get( 'configurationFileMapping' );
+            var globs = Object.keys( config );
+
+            findExactMatch();
+            if( !configurationFile )
+            {
+                findAnyMatch();
             }
         }
 
@@ -67,6 +92,7 @@ function activate( context )
     {
         if( !options )
         {
+            debug( "Manual format" );
             options = { debug: debug, jobNumber: jobNumber++ };
         }
 
@@ -79,6 +105,7 @@ function activate( context )
 
             if( document )
             {
+                debug( "Formatting " + document.fileName, options );
                 return new Promise( function( resolve, reject )
                 {
                     options.configurationFile = getConfigurationFile( options, document );
@@ -96,6 +123,7 @@ function activate( context )
             }
             else
             {
+                debug( "Formatting " + vscode.window.activeTextEditor.document.fileName, options );
                 options.configurationFile = getConfigurationFile( options, vscode.window.activeTextEditor.document );
 
                 var previousPosition = vscode.window.activeTextEditor.selection.active;
@@ -111,7 +139,6 @@ function activate( context )
                     {
                         debug( "Restoring previous cursor position", options );
                         vscode.window.activeTextEditor.selection = new vscode.Selection( previousPosition, previousPosition );
-                        debug( "OK", options );
                     } );
 
                 } ).catch( function( error )
@@ -191,7 +218,7 @@ function activate( context )
     {
         if( vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.uri.scheme === 'file' )
         {
-            var config = vscode.workspace.getConfiguration( 'format-modified' ).get( 'configurationFileMapping' );
+            var config = vscode.workspace.getConfiguration( 'format-modified' ).inspect( 'configurationFileMapping' ).workspaceValue;
             var filename = vscode.window.activeTextEditor.document.fileName;
             var files = vscode.workspace.getConfiguration( 'format-modified' ).get( 'alternativeConfigurationFiles' );
             var current = config[ filename ];
@@ -207,19 +234,34 @@ function activate( context )
             vscode.window.showQuickPick( options, { placeHolder: "Select a format file for use with this file" } ).then( function( formatFile )
             {
                 var configurationFilename = files[ options.indexOf( formatFile ) - 1 ];
+                var updatedConfig = config;
                 if( formatFile === USE_LOCAL_CONFIGURATION_FILE )
                 {
-                    delete config[ filename ];
+                    debug( "Removing alternative configuration for " + filename );
+                    delete updatedConfig[ filename ];
                 }
                 else
                 {
-                    config[ filename ] = configurationFilename;
+                    if( !config[ filename ] )
+                    {
+                        debug( "Adding alternative configuration for " + filename );
+                        updatedConfig[ filename ] = configurationFilename;
+                    }
+                    else
+                    {
+                        debug( "Updating alternative configuration for " + filename );
+                    }
+                    Object.keys( config ).map( function( key )
+                    {
+                        updatedConfig[ key ] = key === filename ? configurationFilename : config[ key ];
+                    } );
+
                     if( fs.existsSync( configurationFilename ) !== true )
                     {
                         vscode.window.showErrorMessage( "Format file not found: " + configurationFilename );
                     }
                 }
-                vscode.workspace.getConfiguration( 'format-modified' ).update( 'configurationFileMapping', config );
+                vscode.workspace.getConfiguration( 'format-modified' ).update( 'configurationFileMapping', updatedConfig );
             } );
         }
         else
