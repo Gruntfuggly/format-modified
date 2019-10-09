@@ -191,7 +191,7 @@ function activate( context )
                         if( elapsedTime > vscode.workspace.getConfiguration( 'editor' ).get( 'formatOnSaveTimeout' ) )
                         {
                             var message = "Formatting took too long (" + elapsedTime + "ms).";
-                            vscode.window.showInformationMessage( message, "Open Settings", "Ignore" ).then( function( button )
+                            vscode.window.showInformationMessage( message, "Open Settings" ).then( function( button )
                             {
                                 if( button === "Open Settings" )
                                 {

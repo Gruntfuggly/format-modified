@@ -1,3 +1,6 @@
+# v0.0.18 - 2019-10-09
+- Remove redundant 'Ignore' button from timeout popup
+
 # v0.0.17 - 2019-10-07
 - Fix configuration file check
 - Improve handling of alternative configuration files
