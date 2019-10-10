@@ -70,7 +70,14 @@ module.exports.fetch = function run( options, document, tempFolder )
                         {
                             parsedDiffs[ 0 ].chunks.map( function( chunk )
                             {
-                                rangeArguments.push( "-lines=" + ( chunk.newStart + ":" + ( chunk.newStart + chunk.newLines ) ) );
+                                var hasChanges = chunk.changes.filter( function( change )
+                                {
+                                    return change.type != 'del';
+                                } ).length > 0;
+                                if( hasChanges )
+                                {
+                                    rangeArguments.push( "-lines=" + ( chunk.newStart + ":" + ( chunk.newStart + chunk.newLines ) ) );
+                                }
                             } );
                         }
 
