@@ -6,6 +6,8 @@ var diffs = require( './diffs.js' );
 var jobNumber = 1;
 var USE_LOCAL_CONFIGURATION_FILE = "None (find .clang-format)";
 var DO_NOT_FORMAT = "Don't format this file";
+var RETRY = "Retry";
+var OPEN_SETTINGS = "Open Settings";
 
 function activate( context )
 {
@@ -212,16 +214,24 @@ function activate( context )
                         if( elapsedTime > vscode.workspace.getConfiguration( 'editor' ).get( 'formatOnSaveTimeout' ) )
                         {
                             var message = "Formatting took too long (" + elapsedTime + "ms).";
-                            vscode.window.showInformationMessage( message, "Open Settings" ).then( function( button )
+                            vscode.window.showInformationMessage( message, RETRY, OPEN_SETTINGS ).then( function( button )
                             {
-                                if( button === "Open Settings" )
+                                if( button === RETRY )
+                                {
+                                    options.debug( "Retry", options );
+                                    format();
+                                }
+                                if( button === OPEN_SETTINGS )
                                 {
                                     vscode.commands.executeCommand( 'workbench.action.openSettings', 'editor.formatOnSaveTimeout' );
                                 }
                             } );
+                            reject();
                         }
-
-                        resolve( edits );
+                        else
+                        {
+                            resolve( edits );
+                        }
                     } );
                 } );
             }
