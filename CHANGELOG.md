@@ -1,3 +1,4 @@
+# v0.0.19 - 2019-10-10
 - Add support for inhibiting formatting for specific files
 - Add command to force formatting of whole document
 - Fix whole document formatting
