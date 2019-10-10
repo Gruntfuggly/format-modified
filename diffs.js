@@ -87,7 +87,7 @@ module.exports.fetch = function run( options, document, tempFolder )
                         }
                         else
                         {
-                            reject( new DiffsError( "No differences found?", "" ) );
+                            reject( new DiffsError( "", "No differences found?" ) );
                         }
                     } );
                 }
