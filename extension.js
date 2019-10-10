@@ -4,7 +4,8 @@ var micromatch = require( 'micromatch' );
 var diffs = require( './diffs.js' );
 
 var jobNumber = 1;
-var USE_LOCAL_CONFIGURATION_FILE = 'none (find .clang-format)';
+var USE_LOCAL_CONFIGURATION_FILE = "None (find .clang-format)";
+var DO_NOT_FORMAT = "Don't format this file";
 
 function activate( context )
 {
@@ -109,16 +110,22 @@ function activate( context )
                 return new Promise( function( resolve, reject )
                 {
                     options.configurationFile = getConfigurationFile( options, document );
-
-                    diffs.fetch( options, document, context.globalStoragePath ).then( function( edits )
+                    if( options.configurationFile === DO_NOT_FORMAT )
                     {
-                        resolve( edits );
-                    } ).catch( function( error )
+                        debug( "Formatting inhibited for " + document.fileName );
+                    }
+                    else
                     {
-                        debug( error.message, options );
-                        debug( error.stderr, options );
-                        vscode.window.showErrorMessage( error.message );
-                    } );
+                        diffs.fetch( options, document, context.globalStoragePath ).then( function( edits )
+                        {
+                            resolve( edits );
+                        } ).catch( function( error )
+                        {
+                            debug( error.message, options );
+                            debug( error.stderr, options );
+                            vscode.window.showErrorMessage( error.message );
+                        } );
+                    }
                 } );
             }
             else
@@ -126,27 +133,34 @@ function activate( context )
                 debug( "Formatting " + vscode.window.activeTextEditor.document.fileName, options );
                 options.configurationFile = getConfigurationFile( options, vscode.window.activeTextEditor.document );
 
-                var previousPosition = vscode.window.activeTextEditor.selection.active;
-
-                diffs.fetch( options, vscode.window.activeTextEditor.document, context.globalStoragePath ).then( function( edits )
+                if( options.configurationFile === DO_NOT_FORMAT )
                 {
-                    var workspaceEdit = new vscode.WorkspaceEdit();
-                    workspaceEdit.set(
-                        vscode.window.activeTextEditor.document.uri,
-                        edits );
+                    debug( "Formatting inhibited for " + document.fileName );
+                }
+                else
+                {
+                    var previousPosition = vscode.window.activeTextEditor.selection.active;
 
-                    vscode.workspace.applyEdit( workspaceEdit ).then( function()
+                    diffs.fetch( options, vscode.window.activeTextEditor.document, context.globalStoragePath ).then( function( edits )
                     {
-                        debug( "Restoring previous cursor position", options );
-                        vscode.window.activeTextEditor.selection = new vscode.Selection( previousPosition, previousPosition );
-                    } );
+                        var workspaceEdit = new vscode.WorkspaceEdit();
+                        workspaceEdit.set(
+                            vscode.window.activeTextEditor.document.uri,
+                            edits );
 
-                } ).catch( function( error )
-                {
-                    debug( error.message, options );
-                    debug( error.stderr, options );
-                    vscode.window.showErrorMessage( error.message );
-                } );
+                        vscode.workspace.applyEdit( workspaceEdit ).then( function()
+                        {
+                            debug( "Restoring previous cursor position", options );
+                            vscode.window.activeTextEditor.selection = new vscode.Selection( previousPosition, previousPosition );
+                        } );
+
+                    } ).catch( function( error )
+                    {
+                        debug( error.message, options );
+                        debug( error.stderr, options );
+                        vscode.window.showErrorMessage( error.message );
+                    } );
+                }
             }
         }
         catch( e )
@@ -218,6 +232,23 @@ function activate( context )
     {
         if( vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.uri.scheme === 'file' )
         {
+            function updateConfigurationFileSetting( filename, setting, originalConfig, updatedConfig )
+            {
+                if( !originalConfig[ filename ] )
+                {
+                    debug( "Adding configuration for " + filename + ": " + setting );
+                    updatedConfig[ filename ] = setting;
+                }
+                else
+                {
+                    debug( "Updating configuration for " + filename + ": " + setting );
+                }
+                Object.keys( originalConfig ).map( function( key )
+                {
+                    updatedConfig[ key ] = key === filename ? setting : config[ key ];
+                } );
+            }
+
             var config = vscode.workspace.getConfiguration( 'format-modified' ).inspect( 'configurationFileMapping' ).workspaceValue;
             var filename = vscode.window.activeTextEditor.document.fileName;
             var files = vscode.workspace.getConfiguration( 'format-modified' ).get( 'alternativeConfigurationFiles' );
@@ -231,37 +262,33 @@ function activate( context )
                 return file;
             } );
             options.unshift( USE_LOCAL_CONFIGURATION_FILE );
+            options.push( DO_NOT_FORMAT );
             vscode.window.showQuickPick( options, { placeHolder: "Select a format file for use with this file" } ).then( function( formatFile )
             {
-                var configurationFilename = files[ options.indexOf( formatFile ) - 1 ];
-                var updatedConfig = config;
-                if( formatFile === USE_LOCAL_CONFIGURATION_FILE )
+                if( formatFile )
                 {
-                    debug( "Removing alternative configuration for " + filename );
-                    delete updatedConfig[ filename ];
-                }
-                else
-                {
-                    if( !config[ filename ] )
+                    var configurationFilename = files[ options.indexOf( formatFile ) - 1 ];
+                    var updatedConfig = config;
+                    if( formatFile === USE_LOCAL_CONFIGURATION_FILE )
                     {
-                        debug( "Adding alternative configuration for " + filename );
-                        updatedConfig[ filename ] = configurationFilename;
+                        debug( "Removing configuration for " + filename );
+                        delete updatedConfig[ filename ];
+                    }
+                    else if( formatFile === DO_NOT_FORMAT )
+                    {
+                        updateConfigurationFileSetting( filename, DO_NOT_FORMAT, config, updatedConfig );
                     }
                     else
                     {
-                        debug( "Updating alternative configuration for " + filename );
-                    }
-                    Object.keys( config ).map( function( key )
-                    {
-                        updatedConfig[ key ] = key === filename ? configurationFilename : config[ key ];
-                    } );
+                        updateConfigurationFileSetting( filename, configurationFilename, config, updatedConfig );
 
-                    if( fs.existsSync( configurationFilename ) !== true )
-                    {
-                        vscode.window.showErrorMessage( "Format file not found: " + configurationFilename );
+                        if( fs.existsSync( configurationFilename ) !== true )
+                        {
+                            vscode.window.showErrorMessage( "Format file not found: " + configurationFilename );
+                        }
                     }
+                    vscode.workspace.getConfiguration( 'format-modified' ).update( 'configurationFileMapping', updatedConfig );
                 }
-                vscode.workspace.getConfiguration( 'format-modified' ).update( 'configurationFileMapping', updatedConfig );
             } );
         }
         else

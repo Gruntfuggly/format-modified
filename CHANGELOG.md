@@ -1,3 +1,5 @@
+- Add support for inhibiting formatting for specific files
+
 # v0.0.18 - 2019-10-09
 - Remove redundant 'Ignore' button from timeout popup
 
