@@ -158,9 +158,15 @@ function activate( context )
 
                     } ).catch( function( error )
                     {
-                        debug( error.message, options );
-                        debug( error.stderr, options );
-                        vscode.window.showErrorMessage( error.message );
+                        if( error.stderr )
+                        {
+                            debug( error.stderr, options );
+                        }
+                        if( error.message )
+                        {
+                            debug( error.message, options );
+                            vscode.window.showErrorMessage( error.message );
+                        }
                     } );
                 }
             }
