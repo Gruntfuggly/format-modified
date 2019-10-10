@@ -15,10 +15,10 @@ module.exports.fetch = function run( options, document, tempFolder )
 {
     return new Promise( function( resolve, reject )
     {
-        if( vscode.workspace.getConfiguration( 'format-modified' ).get( 'formatWholeFile' ) )
+        if( options.wholeDocument || vscode.workspace.getConfiguration( 'format-modified' ).get( 'formatWholeDocument' ) )
         {
-            options.debug( "Formatting the whole file", options );
-            resolve( formatter.format( document, [], options ) );
+            options.debug( "Formatting the whole document", options );
+            resolve( formatter.format( options, document, [] ) );
         }
         else
         {
@@ -86,14 +86,14 @@ module.exports.fetch = function run( options, document, tempFolder )
                 }
                 else
                 {
-                    options.debug( "File not in git, so formatting the whole file", options );
+                    options.debug( "File not in git, so formatting the whole document", options );
                     resolve( formatter.format( options, document, [] ) );
                 }
             }
             catch( e )
             {
                 options.debug( e, options );
-                options.debug( "Formatting the whole file", options );
+                options.debug( "Formatting the whole document", options );
                 resolve( formatter.format( options, document, [] ) );
             }
         }

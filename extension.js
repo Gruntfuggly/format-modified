@@ -93,8 +93,8 @@ function activate( context )
     {
         if( !options )
         {
-            debug( "Manual format" );
             options = { debug: debug, jobNumber: jobNumber++ };
+            debug( "Manual format, starting job " + options.jobNumber );
         }
 
         try
@@ -170,6 +170,13 @@ function activate( context )
         }
     }
 
+    function formatWholeDocument()
+    {
+        var options = { wholeDocument: true, debug: debug, jobNumber: jobNumber++ };
+        debug( "Manual format whole document, starting job " + options.jobNumber );
+        format( options );
+    }
+
     function register()
     {
         if( provider )
@@ -228,6 +235,8 @@ function activate( context )
 
     context.subscriptions.push( vscode.commands.registerCommand( 'format-modified.format', format ) );
 
+    context.subscriptions.push( vscode.commands.registerCommand( 'format-modified.formatWholeDocument', formatWholeDocument ) );
+
     context.subscriptions.push( vscode.commands.registerCommand( 'format-modified.setConfigurationFile', function()
     {
         if( vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.uri.scheme === 'file' )
@@ -263,7 +272,7 @@ function activate( context )
             } );
             options.unshift( USE_LOCAL_CONFIGURATION_FILE );
             options.push( DO_NOT_FORMAT );
-            vscode.window.showQuickPick( options, { placeHolder: "Select a format file for use with this file" } ).then( function( formatFile )
+            vscode.window.showQuickPick( options, { placeHolder: "Select a configuration file for formatting this file" } ).then( function( formatFile )
             {
                 if( formatFile )
                 {

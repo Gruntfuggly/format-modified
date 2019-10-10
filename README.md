@@ -14,6 +14,8 @@ Normally the extension will work as a standard formatter for the file types conf
 
 The command **Set Configuration File** can be used to set an alternative configuration file for the current file in the editor. This will show a list of configurations files (which can be set in the settings).
 
+The command **Format Whole Document** can be used to force the whole document to be formatted.
+
 ## Installing
 
 You can install the latest version of the extension via the Visual Studio Marketplace [here](https://marketplace.visualstudio.com/items?itemName=Gruntfuggly.format-modified).
@@ -55,7 +57,7 @@ By default, clang-format will look for a configuration file (`.clang-format`) in
 
 To make it quicker to associate individual files with specific clang-format configuration files, you can add then to this list. You can then use the command **Format Modified: Set Configuration File** to select a configuration file from the list which will be used for the current file (*see Notes below*).
 
-`format-modified.formatWholeFile`
+`format-modified.formatWholeDocument`
 
 Override the default behaviour of only formatting modified parts of the file. This allows the extension to be used as a standard formatter using clang format, but allows the alternative configuration files to be used.
 

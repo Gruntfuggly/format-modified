@@ -24,6 +24,11 @@
                 "category": "Format Modified"
             },
             {
+                "command": "format-modified.formatWholeDocument",
+                "title": "Format whole document",
+                "category": "Format Modified"
+            },
+            {
                 "command": "format-modified.setConfigurationFile",
                 "title": "Set Configuration File",
                 "category": "Format Modified"
@@ -42,9 +47,9 @@
                     "type": "string",
                     "markdownDescription": "Location of clang-format executable"
                 },
-                "format-modified.formatWholeFile": {
+                "format-modified.formatWholeDocument": {
                     "type": "boolean",
-                    "markdownDescription": "Set to true to force the whole file to be formatted",
+                    "markdownDescription": "Set to true to force the whole document to be formatted",
                     "default": false
                 },
                 "format-modified.languages": {

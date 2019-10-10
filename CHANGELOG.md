@@ -1,4 +1,6 @@
 - Add support for inhibiting formatting for specific files
+- Add command to force formatting of whole document
+- Fix whole document formatting
 
 # v0.0.18 - 2019-10-09
 - Remove redundant 'Ignore' button from timeout popup
