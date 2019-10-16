@@ -1,4 +1,5 @@
 - Warn if configuration file is not found when formatting
+- Tweak setting of range ends
 
 # v0.0.19 - 2019-10-10
 - Add support for inhibiting formatting for specific files

@@ -76,13 +76,15 @@ module.exports.fetch = function run( options, document, tempFolder )
                                 } ).length > 0;
                                 if( hasChanges )
                                 {
-                                    rangeArguments.push( "-lines=" + ( chunk.newStart + ":" + ( chunk.newStart + chunk.newLines ) ) );
+                                    var endLine = chunk.newStart + chunk.newLines - ( chunk.newLines > 0 ? 1 : 0 );
+                                    rangeArguments.push( "-lines=" + ( chunk.newStart + ":" + endLine ) );
                                 }
                             } );
                         }
 
                         if( rangeArguments.length > 0 )
                         {
+                            options.debug( "Ranges:" + JSON.stringify( rangeArguments ), options );
                             resolve( formatter.format( options, document, rangeArguments ) );
                         }
                         else
