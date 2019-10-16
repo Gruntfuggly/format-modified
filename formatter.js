@@ -12,39 +12,47 @@ function FormatError( error, stderr )
 
 module.exports.format = function run( options, document, rangeArguments )
 {
-    var clangFormatConfig = vscode.workspace.getConfiguration( 'clang-format' );
-    var clangFormat = clangFormatConfig && clangFormatConfig.executable;
-    if( !clangFormat || clangFormat === "clang-format" )
-    {
-        var cppConfig = vscode.workspace.getConfiguration( 'C_Cpp' );
-        clangFormat = cppConfig && cppConfig.clang_format_path;
-    }
-    if( !clangFormat )
-    {
-        clangFormat = "clang-format";
-    }
-
-    var cwd = path.dirname( document.fileName );
-
-    var formatArguments = [];
-
-    if( options.configurationFile )
-    {
-        var style = yamljs.parse( fs.readFileSync( options.configurationFile, 'utf8' ) );
-        formatArguments.push( "-style=" + yamljs.stringify( style, 0 ) );
-    }
-    else
-    {
-        formatArguments.push( "-style=file" );
-    }
-    formatArguments = formatArguments.concat( rangeArguments );
-
-    options.debug( "Formatting using:", options );
-    options.debug( " " + clangFormat + " " + formatArguments.join( " " ), options );
-    options.debug( "in folder " + cwd, options );
-
     return new Promise( function( resolve, reject )
     {
+        var clangFormatConfig = vscode.workspace.getConfiguration( 'clang-format' );
+        var clangFormat = clangFormatConfig && clangFormatConfig.executable;
+        if( !clangFormat || clangFormat === "clang-format" )
+        {
+            var cppConfig = vscode.workspace.getConfiguration( 'C_Cpp' );
+            clangFormat = cppConfig && cppConfig.clang_format_path;
+        }
+        if( !clangFormat )
+        {
+            clangFormat = "clang-format";
+        }
+
+        var cwd = path.dirname( document.fileName );
+
+        var formatArguments = [];
+
+        if( options.configurationFile )
+        {
+            if( fs.existsSync( options.configurationFile ) )
+            {
+                var style = yamljs.parse( fs.readFileSync( options.configurationFile, 'utf8' ) );
+                formatArguments.push( "-style=" + yamljs.stringify( style, 0 ) );
+            }
+            else
+            {
+                reject( new FormatError( "Configuration file not found: " + options.configurationFile, "" ) );
+            }
+        }
+        else
+        {
+            formatArguments.push( "-style=file" );
+        }
+
+        formatArguments = formatArguments.concat( rangeArguments );
+
+        options.debug( "Formatting using:", options );
+        options.debug( " " + clangFormat + " " + formatArguments.join( " " ), options );
+        options.debug( "in folder " + cwd, options );
+
         var formattedFile = "";
         var formatFileProcess = childProcess.spawn( clangFormat, formatArguments, { cwd: cwd } );
 

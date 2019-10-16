@@ -309,7 +309,7 @@ function activate( context )
 
                         if( fs.existsSync( configurationFilename ) !== true )
                         {
-                            vscode.window.showErrorMessage( "Format file not found: " + configurationFilename );
+                            vscode.window.showErrorMessage( "Configuration file not found: " + configurationFilename );
                         }
                     }
                     vscode.workspace.getConfiguration( 'format-modified' ).update( 'configurationFileMapping', updatedConfig );
