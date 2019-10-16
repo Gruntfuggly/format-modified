@@ -3,6 +3,7 @@ var vscode = require( 'vscode' );
 var fs = require( 'fs' );
 var path = require( 'path' );
 var yamljs = require( 'yamljs' );
+var expandTilde = require( './expandTilde.js' ).expandTilde;
 
 function FormatError( error, stderr )
 {
@@ -32,9 +33,10 @@ module.exports.format = function run( options, document, rangeArguments )
 
         if( options.configurationFile )
         {
-            if( fs.existsSync( options.configurationFile ) )
+            var configurationFile = expandTilde( options.configurationFile );
+            if( fs.existsSync( configurationFile ) )
             {
-                var style = yamljs.parse( fs.readFileSync( options.configurationFile, 'utf8' ) );
+                var style = yamljs.parse( fs.readFileSync( configurationFile, 'utf8' ) );
                 formatArguments.push( "-style=" + yamljs.stringify( style, 0 ) );
             }
             else

@@ -2,6 +2,7 @@ var fs = require( 'fs' );
 var vscode = require( 'vscode' );
 var micromatch = require( 'micromatch' );
 var diffs = require( './diffs.js' );
+var expandTilde = require( './expandTilde.js' ).expandTilde;
 
 var jobNumber = 1;
 var USE_LOCAL_CONFIGURATION_FILE = "None (find .clang-format)";
@@ -307,7 +308,7 @@ function activate( context )
                     {
                         updateConfigurationFileSetting( filename, configurationFilename, config, updatedConfig );
 
-                        if( fs.existsSync( configurationFilename ) !== true )
+                        if( fs.existsSync( expandTilde( configurationFilename ) ) !== true )
                         {
                             vscode.window.showErrorMessage( "Configuration file not found: " + configurationFilename );
                         }
