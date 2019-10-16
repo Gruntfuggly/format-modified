@@ -70,7 +70,7 @@
                 },
                 "format-modified.alternativeConfigurationFiles": {
                     "type": "array",
-                    "markdownDescription": "A list of alternative .clang-format files which can be associated with a file using the Set Format File command",
+                    "markdownDescription": "A list of alternative .clang-format files which can be associated with a file using the Set Configuration File command",
                     "items": {
                         "type": "string"
                     },
