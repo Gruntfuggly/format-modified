@@ -1,3 +1,4 @@
+# v0.0.20 - 2019-10-16
 - Warn if configuration file is not found when formatting
 - Tweak setting of range ends
 
