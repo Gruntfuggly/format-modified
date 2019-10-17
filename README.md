@@ -1,3 +1,7 @@
+[![Version](https://vsmarketplacebadge.apphb.com/version-short/Gruntfuggly.format-modified.svg)](https://marketplace.visualstudio.com/items?itemName=Gruntfuggly.format-modified)
+[![Rating](https://vsmarketplacebadge.apphb.com/rating-short/Gruntfuggly.format-modified.svg)](https://marketplace.visualstudio.com/items?itemName=Gruntfuggly.format-modified)
+[![Installs](https://vsmarketplacebadge.apphb.com/installs/Gruntfuggly.format-modified.svg)](https://marketplace.visualstudio.com/items?itemName=Gruntfuggly.format-modified)
+
 # Format Modified
 
 Formats modified sections of code on save. This is useful where you have a legacy codebase where you want to only format code changes and new code.
