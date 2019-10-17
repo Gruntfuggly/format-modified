@@ -1,5 +1,6 @@
 - Add support for tilde(~) and '${homedir}' in alternative configuration filenames
 - Improve error handling when setting alternative configuration files
+- Improve finding of clang-format executable
 
 # v0.0.20 - 2019-10-16
 - Warn if configuration file is not found when formatting

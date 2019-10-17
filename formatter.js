@@ -15,16 +15,28 @@ module.exports.format = function run( options, document, rangeArguments )
 {
     return new Promise( function( resolve, reject )
     {
-        var clangFormatConfig = vscode.workspace.getConfiguration( 'clang-format' );
-        var clangFormat = clangFormatConfig && clangFormatConfig.executable;
-        if( !clangFormat || clangFormat === "clang-format" )
+        function findExecutable( clangFormat, module, setting )
         {
-            var cppConfig = vscode.workspace.getConfiguration( 'C_Cpp' );
-            clangFormat = cppConfig && cppConfig.clang_format_path;
+            if( !clangFormat )
+            {
+                var clangFormat = vscode.workspace.getConfiguration( module ).get( setting );
+                if( clangFormat && fs.existsSync( clangFormat ) )
+                {
+                    options.debug( "Using clang-format executable defined by '" + module + "." + setting + "': " + clangFormat, options );
+                }
+            }
+            return clangFormat;
         }
+
+        var clangFormat;
+        clangFormat = findExecutable( clangFormat, 'format-modified', 'executable' );
+        clangFormat = findExecutable( clangFormat, 'clang-format', 'executable' );
+        clangFormat = findExecutable( clangFormat, 'C_Cpp', 'clang_format_path' );
+
         if( !clangFormat )
         {
             clangFormat = "clang-format";
+            options.debug( "Using clang-format in user path", options );
         }
 
         var cwd = path.dirname( document.fileName );
