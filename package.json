@@ -29,8 +29,13 @@
                 "category": "Format Modified"
             },
             {
-                "command": "format-modified.setConfigurationFile",
-                "title": "Set Configuration File",
+                "command": "format-modified.setConfigurationFileForThisFile",
+                "title": "Set Configuration File For This File",
+                "category": "Format Modified"
+            },
+            {
+                "command": "format-modified.setConfigurationFileForWorkspace",
+                "title": "Set Configuration File For Workspace",
                 "category": "Format Modified"
             }
         ],

@@ -1,3 +1,5 @@
+- Add support for adding alternative configurations for workspaces via the GUI
+
 # v0.0.21 - 2019-10-17
 - Add support for tilde(~) and '${homedir}' in alternative configuration filenames
 - Improve error handling when setting alternative configuration files

@@ -12,7 +12,9 @@ Glob patterns can also be used to specify alternative clang-format configuration
 
 Normally the extension will work as a standard formatter for the file types configured in `format-modified.languages`. Formatting can also be applied manually by using the command **Format Modified Sections**.
 
-The command **Set Configuration File** can be used to set an alternative configuration file for the current file in the editor. This will show a list of configurations files (which can be set in the settings).
+The command **Set Configuration File For Workspace** can be used to set an alternative configuration file for the current workspace. This will show a list of configurations files (which can be set in the settings).
+
+Similarly, the command **Set Configuration File For This File** can be used to set an alternative configuration file for the current file in the editor.
 
 The command **Format Whole Document** can be used to force the whole document to be formatted.
 

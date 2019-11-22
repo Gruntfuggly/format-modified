@@ -247,6 +247,83 @@ function activate( context )
         context.subscriptions.push( provider );
     }
 
+    function setConfigurationFile( prompt, pattern, config, configTarget )
+    {
+        function updateConfigurationFileSetting( workspace, setting, originalConfig, updatedConfig )
+        {
+            if( !originalConfig[ workspace ] )
+            {
+                debug( "Adding configuration for " + workspace + ": " + setting );
+                updatedConfig[ workspace ] = setting;
+            }
+            else
+            {
+                debug( "Updating configuration for " + workspace + ": " + setting );
+            }
+            Object.keys( originalConfig ).map( function( key )
+            {
+                updatedConfig[ key ] = key === workspace ? setting : config[ key ];
+            } );
+        }
+
+        if( config === undefined )
+        {
+            config = {};
+        }
+        var files = vscode.workspace.getConfiguration( 'format-modified' ).get( 'alternativeConfigurationFiles' );
+        if( files.length > 0 )
+        {
+            var current = config[ pattern ];
+            var options = files.map( function( file )
+            {
+                if( file === current )
+                {
+                    return file + " (current)";
+                }
+                return file;
+            } );
+            options.unshift( USE_LOCAL_CONFIGURATION_FILE );
+            options.push( DO_NOT_FORMAT );
+            vscode.window.showQuickPick( options, { placeHolder: "Select a configuration file for formatting this " + prompt } ).then( function( formatFile )
+            {
+                if( formatFile )
+                {
+                    var configurationFilename = files[ options.indexOf( formatFile ) - 1 ];
+                    var updatedConfig = config;
+                    if( formatFile === USE_LOCAL_CONFIGURATION_FILE )
+                    {
+                        debug( "Removing configuration for " + pattern );
+                        delete updatedConfig[ pattern ];
+                    }
+                    else if( formatFile === DO_NOT_FORMAT )
+                    {
+                        updateConfigurationFileSetting( pattern, DO_NOT_FORMAT, config, updatedConfig );
+                    }
+                    else
+                    {
+                        updateConfigurationFileSetting( pattern, configurationFilename, config, updatedConfig );
+
+                        if( fs.existsSync( expandTilde( configurationFilename ) ) !== true )
+                        {
+                            vscode.window.showErrorMessage( "Configuration file not found: " + configurationFilename );
+                        }
+                    }
+                    vscode.workspace.getConfiguration( 'format-modified' ).update( 'configurationFileMapping', updatedConfig, configTarget );
+                }
+            } );
+        }
+        else
+        {
+            vscode.window.showInformationMessage( "Please define some alternative configuration files first.", OPEN_SETTINGS ).then( function( button )
+            {
+                if( button === OPEN_SETTINGS )
+                {
+                    vscode.commands.executeCommand( 'workbench.action.openSettings', 'format-modified.alternativeConfigurationFiles' );
+                }
+            } );
+        }
+    }
+
     resetOutputChannel();
     register();
 
@@ -254,90 +331,42 @@ function activate( context )
 
     context.subscriptions.push( vscode.commands.registerCommand( 'format-modified.formatWholeDocument', formatWholeDocument ) );
 
-    context.subscriptions.push( vscode.commands.registerCommand( 'format-modified.setConfigurationFile', function()
+    context.subscriptions.push( vscode.commands.registerCommand( 'format-modified.setConfigurationFileForThisFile', function()
     {
         if( vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.uri.scheme === 'file' )
         {
-            function updateConfigurationFileSetting( filename, setting, originalConfig, updatedConfig )
-            {
-                if( !originalConfig[ filename ] )
-                {
-                    debug( "Adding configuration for " + filename + ": " + setting );
-                    updatedConfig[ filename ] = setting;
-                }
-                else
-                {
-                    debug( "Updating configuration for " + filename + ": " + setting );
-                }
-                Object.keys( originalConfig ).map( function( key )
-                {
-                    updatedConfig[ key ] = key === filename ? setting : config[ key ];
-                } );
-            }
-
             var config = vscode.workspace.getConfiguration( 'format-modified' ).inspect( 'configurationFileMapping' ).workspaceValue;
-            if( config === undefined )
-            {
-                config = {};
-            }
-            var filename = vscode.window.activeTextEditor.document.fileName;
-            var files = vscode.workspace.getConfiguration( 'format-modified' ).get( 'alternativeConfigurationFiles' );
-            if( files.length > 0 )
-            {
-                var current = config[ filename ];
-                var options = files.map( function( file )
-                {
-                    if( file === current )
-                    {
-                        return file + " (current)";
-                    }
-                    return file;
-                } );
-                options.unshift( USE_LOCAL_CONFIGURATION_FILE );
-                options.push( DO_NOT_FORMAT );
-                vscode.window.showQuickPick( options, { placeHolder: "Select a configuration file for formatting this file" } ).then( function( formatFile )
-                {
-                    if( formatFile )
-                    {
-                        var configurationFilename = files[ options.indexOf( formatFile ) - 1 ];
-                        var updatedConfig = config;
-                        if( formatFile === USE_LOCAL_CONFIGURATION_FILE )
-                        {
-                            debug( "Removing configuration for " + filename );
-                            delete updatedConfig[ filename ];
-                        }
-                        else if( formatFile === DO_NOT_FORMAT )
-                        {
-                            updateConfigurationFileSetting( filename, DO_NOT_FORMAT, config, updatedConfig );
-                        }
-                        else
-                        {
-                            updateConfigurationFileSetting( filename, configurationFilename, config, updatedConfig );
 
-                            if( fs.existsSync( expandTilde( configurationFilename ) ) !== true )
-                            {
-                                vscode.window.showErrorMessage( "Configuration file not found: " + configurationFilename );
-                            }
-                        }
-                        vscode.workspace.getConfiguration( 'format-modified' ).update( 'configurationFileMapping', updatedConfig );
-                    }
-                } );
-            }
-            else
-            {
-                vscode.window.showInformationMessage( "Please define some alternative configuration files first.", OPEN_SETTINGS ).then( function( button )
-                {
-                    if( button === OPEN_SETTINGS )
-                    {
-                        vscode.commands.executeCommand( 'workbench.action.openSettings', 'format-modified.alternativeConfigurationFiles' );
-                    }
-                } );
-
-            }
+            setConfigurationFile( "file", vscode.window.activeTextEditor.document.fileName, config, vscode.ConfigurationTarget.Workspace );
         }
         else
         {
             vscode.window.showInformationMessage( "Please open a file first" );
+        }
+    } ) );
+
+
+    context.subscriptions.push( vscode.commands.registerCommand( 'format-modified.setConfigurationFileForWorkspace', function()
+    {
+        if( vscode.workspace.workspaceFolders )
+        {
+            var config = vscode.workspace.getConfiguration( 'format-modified' ).inspect( 'configurationFileMapping' ).globalValue;
+
+            if( vscode.workspace.workspaceFolders.length > 1 )
+            {
+                vscode.window.showWorkspaceFolderPick().then( function( workspace )
+                {
+                    setConfigurationFile( "workspace", workspace.uri.fsPath + "/**/*", config, vscode.ConfigurationTarget.Global );
+                } );
+            }
+            else
+            {
+                setConfigurationFile( "workspace", vscode.workspace.workspaceFolders[ 0 ].uri.fsPath + "/**/*", config, vscode.ConfigurationTarget.Global );
+            }
+        }
+        else
+        {
+            vscode.window.showInformationMessage( "Please open a workspace first" );
         }
     } ) );
 
