@@ -1,3 +1,4 @@
+# v0.0.22 - 2019-11-22
 - Add support for adding alternative configurations for workspaces via the GUI
 
 # v0.0.21 - 2019-10-17
