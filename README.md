@@ -22,10 +22,6 @@ The command **Format Whole Document** can be used to force the whole document to
 
 You can install the latest version of the extension via the Visual Studio Marketplace [here](https://marketplace.visualstudio.com/items?itemName=Gruntfuggly.format-modified).
 
-Alternatively, open Visual Studio code, press `Ctrl+P` or `Cmd+P` and type:
-
-    > ext install format-modified
-
 ### Source Code
 
 The source code is available on GitHub [here](https://github.com/Gruntfuggly/format-modified).
@@ -47,7 +43,8 @@ Use this to control which files are formatted. It is set to `["cpp"]` by default
 `format-modified.configurationFileMapping`
 
 By default, clang-format will look for a configuration file (`.clang-format`) in the folder containing the file to be formatted. If no configuration file is found, it will look in the parent folder, and so forth. This can be overridden and specific configuration files can be used by defining glob patterns. For example, to set different configurations to format C++ header and body files, use something like:
-```
+
+```json
 "format-modified.configurationFileMapping":
 {
     "**/*.h": "/home/user/clang-configuration-files/.clang-format.cpp-headers"
@@ -71,12 +68,12 @@ When looking for alternative configurations, the combined settings are searched 
 
 You can organise the settings as you wish, but the **Format Modified: Set Configuration File** will always attempt to update the *Workspace Settings*.
 
-# Known issues
+## Known issues
 
 clang-format sometimes insists on formatting the line after any specified ranges of lines, even if only a single line is specified.
 
-# Credits
+## Credits
 
-<div>Icons made by <a href="https://www.flaticon.com/authors/vaadin" title="Vaadin">Vaadin</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
+Icons made by [Vaadin](https://www.flaticon.com/authors/vaadin) from [www.flaticon.com](https://www.flaticon.com/), licensed by [CC 3.0BY](http://creativecommons.org/licenses/by/3.0/).
 
-<div>Icons made by <a href="https://www.flaticon.com/authors/dave-gandy" title="Dave Gandy">Dave Gandy</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
+Icons made by [Dave Gandy](https://www.flaticon.com/authors/dave-gandy) from [www.flaticon.com](https://www.flaticon.com/), licensed by [CC 3.0BY](http://creativecommons.org/licenses/by/3.0/).
