@@ -1,5 +1,7 @@
 # Format Modified Change Log
 
+## v0.0.23 - 2020-02-20
+
 - Fix markdown lint errors in CHANGELOG.md and README.md
 - Add option to format selecion(s)
 - Handle errors better
