@@ -124,9 +124,10 @@ function activate( context )
                             resolve( edits );
                         } ).catch( function( error )
                         {
-                            debug( error.message, options );
-                            debug( error.stderr, options );
+                            debug( "Error message: " + error.message, options );
+                            debug( "Error stderr: " + error.stderr, options );
                             vscode.window.showErrorMessage( error.message );
+                            reject( error );
                         } );
                     }
                 } );
@@ -161,20 +162,21 @@ function activate( context )
                     {
                         if( error.stderr )
                         {
-                            debug( error.stderr, options );
+                            debug( "Error.stderr: " + error.stderr, options );
                         }
                         if( error.message )
                         {
-                            debug( error.message, options );
+                            debug( "Error.message: " + error.message, options );
                             vscode.window.showErrorMessage( error.message );
                         }
+                        reject( error );
                     } );
                 }
             }
         }
         catch( e )
         {
-            debug( e, options );
+            debug( "Error:" + e, options );
             return [];
         }
     }
@@ -253,6 +255,9 @@ function activate( context )
                         {
                             resolve( edits );
                         }
+                    } ).catch( function()
+                    {
+                        resolve();
                     } );
                 } );
             }
