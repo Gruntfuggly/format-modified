@@ -181,9 +181,23 @@ function activate( context )
 
     function formatWholeDocument()
     {
-        var options = { wholeDocument: true, debug: debug, jobNumber: jobNumber++ };
+        var options = { wholeDocument: true, debug: debug, jobNumber: jobNumber++, editor: vscode.window.activeTextEditor };
         debug( "Manual format whole document, starting job " + options.jobNumber );
         format( options );
+    }
+
+    function formatSelection()
+    {
+        if( vscode.window.activeTextEditor )
+        {
+            var options = { selections: true, debug: debug, jobNumber: jobNumber++, editor: vscode.window.activeTextEditor };
+            debug( "Manual format selection, starting job " + options.jobNumber );
+            format( options );
+        }
+        else
+        {
+            debug( "No active text editor" );
+        }
     }
 
     function register()
@@ -328,8 +342,8 @@ function activate( context )
     register();
 
     context.subscriptions.push( vscode.commands.registerCommand( 'format-modified.format', format ) );
-
     context.subscriptions.push( vscode.commands.registerCommand( 'format-modified.formatWholeDocument', formatWholeDocument ) );
+    context.subscriptions.push( vscode.commands.registerCommand( 'format-modified.formatSelection', formatSelection ) );
 
     context.subscriptions.push( vscode.commands.registerCommand( 'format-modified.setConfigurationFileForThisFile', function()
     {

@@ -15,10 +15,28 @@ module.exports.fetch = function run( options, document, tempFolder )
 {
     return new Promise( function( resolve, reject )
     {
-        if( options.wholeDocument || vscode.workspace.getConfiguration( 'format-modified' ).get( 'formatWholeDocument' ) )
+        if( options.wholeDocument === true || vscode.workspace.getConfiguration( 'format-modified' ).get( 'formatWholeDocument' ) )
         {
             options.debug( "Formatting the whole document", options );
             resolve( formatter.format( options, document, [] ) );
+        }
+        else if( options.selections === true )
+        {
+            var rangeArguments = [];
+            options.editor.selections.map( function( selection )
+            {
+                var firstLine = selection.start.line + 1;
+                var lastLine = selection.end.line + 1;
+                if( selection.end.character === 0 )
+                {
+                    lastLine--;
+                }
+                options.debug( "Lines " + firstLine + " to " + lastLine, options );
+                rangeArguments.push( "-lines=" + ( firstLine + ":" + lastLine ) );
+            } );
+
+            options.debug( "Formatting the current selection", options );
+            resolve( formatter.format( options, document, rangeArguments ) );
         }
         else
         {

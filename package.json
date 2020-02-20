@@ -29,6 +29,11 @@
                 "category": "Format Modified"
             },
             {
+                "command": "format-modified.formatSelection",
+                "title": "Format selection",
+                "category": "Format Modified"
+            },
+            {
                 "command": "format-modified.setConfigurationFileForThisFile",
                 "title": "Set Configuration File For This File",
                 "category": "Format Modified"

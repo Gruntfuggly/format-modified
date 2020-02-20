@@ -16,7 +16,7 @@ The command **Set Configuration File For Workspace** can be used to set an alter
 
 Similarly, the command **Set Configuration File For This File** can be used to set an alternative configuration file for the current file in the editor.
 
-The command **Format Whole Document** can be used to force the whole document to be formatted.
+The command **Format Whole Document** can be used to force the whole document to be formatted with the appropriate configuration file. Likewise, **Format Selection** will format the current selection.
 
 ## Installing
 
