@@ -85,6 +85,11 @@
                         "type": "string"
                     },
                     "default": []
+                },
+                "format-modified.showCurrentConfigurationFileInStatusBar": {
+                    "type": "boolean",
+                    "markdownDescription": "Show the configuration file which will be used to format the current file in the status bar",
+                    "default": true
                 }
             }
         }

@@ -60,6 +60,10 @@ To make it quicker to associate individual files with specific clang-format conf
 
 Override the default behaviour of only formatting modified parts of the file. This allows the extension to be used as a standard formatter using clang format, but allows the alternative configuration files to be used.
 
+`format-modified.showCurrentConfigurationFileInStatusBar`
+
+Normally the configuration file that will be used for the current file is shown in the status bar. If you want to hide it, set this to false. *Note: You can also right click on it to hide it, but you'll have to do it in every window.*
+
 ### Notes
 
 Using the **Format Modified: Set Configuration File** will update `format-modified.configurationFileMapping` your *Workspace settings*. Globs which match multiple files should be defined in your *User settings*.

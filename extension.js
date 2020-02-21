@@ -1,11 +1,13 @@
 var fs = require( 'fs' );
 var vscode = require( 'vscode' );
 var micromatch = require( 'micromatch' );
+var path = require( 'path' );
 var diffs = require( './diffs.js' );
 var expandTilde = require( './expandTilde.js' ).expandTilde;
 
 var jobNumber = 1;
 var USE_LOCAL_CONFIGURATION_FILE = "None (find .clang-format)";
+var USE_INHERITED = "None (use workspace setting or find .clang-format)";
 var DO_NOT_FORMAT = "Don't format this file";
 var RETRY = "Retry";
 var OPEN_SETTINGS = "Open Settings";
@@ -14,6 +16,7 @@ function activate( context )
 {
     var outputChannel;
     var provider;
+    var statusBar = vscode.window.createStatusBarItem( vscode.StatusBarAlignment.Right, 0 );
 
     function resetOutputChannel()
     {
@@ -39,6 +42,7 @@ function activate( context )
 
     function getConfigurationFile( options, document )
     {
+        debug( "getConfigurationFile" );
         function findExactMatch()
         {
             for( var i = 0; i < globs.length; ++i )
@@ -47,8 +51,11 @@ function activate( context )
 
                 if( config.hasOwnProperty( glob ) && document.fileName === glob )
                 {
-                    debug( "Matched glob: " + glob, options );
-                    configurationFile = config[ glob ];
+                    debug( "Matched exact glob: " + glob, options );
+                    configurationFile = {
+                        path: config[ glob ],
+                        type: "exact"
+                    };
 
                     debug( "Using alternative configuration file: " + configurationFile, options );
                 }
@@ -66,7 +73,10 @@ function activate( context )
                     if( micromatch.isMatch( document.fileName, glob ) )
                     {
                         debug( "Matched glob: " + glob, options );
-                        configurationFile = config[ glob ];
+                        configurationFile = {
+                            path: config[ glob ],
+                            type: "glob"
+                        };
 
                         debug( "Using alternative configuration file: " + configurationFile, options );
                         break;
@@ -75,7 +85,7 @@ function activate( context )
             }
         }
 
-        var configurationFile;
+        var configurationFile = { path: "", type: "none" };
 
         if( document && document.uri.scheme === 'file' )
         {
@@ -83,11 +93,15 @@ function activate( context )
             var globs = Object.keys( config );
 
             findExactMatch();
-            if( !configurationFile )
+
+            if( configurationFile.type === "none" )
             {
                 findAnyMatch();
             }
+
         }
+
+        console.log( JSON.stringify( configurationFile, null, 2 ) );
 
         return configurationFile;
     }
@@ -112,7 +126,7 @@ function activate( context )
                 debug( "Formatting " + document.fileName, options );
                 return new Promise( function( resolve, reject )
                 {
-                    options.configurationFile = getConfigurationFile( options, document );
+                    options.configurationFile = getConfigurationFile( options, document ).path;
                     if( options.configurationFile === DO_NOT_FORMAT )
                     {
                         debug( "Formatting inhibited for " + document.fileName, options );
@@ -136,7 +150,7 @@ function activate( context )
             else
             {
                 debug( "Formatting " + vscode.window.activeTextEditor.document.fileName, options );
-                options.configurationFile = getConfigurationFile( options, vscode.window.activeTextEditor.document );
+                options.configurationFile = getConfigurationFile( options, vscode.window.activeTextEditor.document ).path;
 
                 if( options.configurationFile === DO_NOT_FORMAT )
                 {
@@ -298,11 +312,11 @@ function activate( context )
             {
                 if( file === current )
                 {
-                    return file + " (current)";
+                    return "▶ " + file + " ◀";
                 }
                 return file;
             } );
-            options.unshift( USE_LOCAL_CONFIGURATION_FILE );
+            options.unshift( prompt === "workspace" ? USE_LOCAL_CONFIGURATION_FILE : USE_INHERITED );
             options.push( DO_NOT_FORMAT );
             vscode.window.showQuickPick( options, { placeHolder: "Select a configuration file for formatting this " + prompt } ).then( function( formatFile )
             {
@@ -344,8 +358,32 @@ function activate( context )
         }
     }
 
-    resetOutputChannel();
-    register();
+    function updateStatusBar()
+    {
+        if( vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.uri.scheme === 'file' )
+        {
+            var configurationFile = getConfigurationFile( { debug: debug }, vscode.window.activeTextEditor.document );
+
+            if( configurationFile.path )
+            {
+                statusBar.text = "$(json) " + path.basename( configurationFile.path );
+                if( configurationFile.type === "glob" )
+                {
+                    statusBar.text += " $(regex)";
+                }
+
+                statusBar.command = 'format-modified.setConfigurationFileForThisFile';
+
+                if( vscode.workspace.getConfiguration( 'format-modified' ).get( 'showCurrentConfigurationFileInStatusBar' ) )
+                {
+                    statusBar.show();
+                    return;
+                }
+            }
+        }
+
+        statusBar.hide();
+    }
 
     context.subscriptions.push( vscode.commands.registerCommand( 'format-modified.format', format ) );
     context.subscriptions.push( vscode.commands.registerCommand( 'format-modified.formatWholeDocument', formatWholeDocument ) );
@@ -390,6 +428,8 @@ function activate( context )
         }
     } ) );
 
+    context.subscriptions.push( vscode.window.onDidChangeActiveTextEditor( updateStatusBar ) );
+
     context.subscriptions.push( vscode.workspace.onDidChangeConfiguration( function( e )
     {
         if( e.affectsConfiguration( "format-modified" ) )
@@ -402,9 +442,23 @@ function activate( context )
             {
                 register();
             }
+            else if(
+                e.affectsConfiguration( "format-modified.showCurrentConfigurationFileInStatusBar" ) ||
+                e.affectsConfiguration( "format-modified.languages" ) ||
+                e.affectsConfiguration( "format-modified.configurationFileMapping" ) ||
+                e.affectsConfiguration( "format-modified.alternativeConfigurationFiles" )
+            )
+            {
+                updateStatusBar();
+            }
         }
     } ) );
+
+    resetOutputChannel();
+    register();
+    updateStatusBar();
 }
+
 exports.activate = activate;
 
 function deactivate()

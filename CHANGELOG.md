@@ -1,5 +1,7 @@
 # Format Modified Change Log
 
+- Add current configuration file indicator to status bar
+
 ## v0.0.24 - 2020-02-21
 
 - Handle 'format inhibited' better
