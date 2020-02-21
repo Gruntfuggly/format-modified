@@ -1,5 +1,7 @@
 # Format Modified Change Log
 
+- Handle 'format inhibited' better
+
 ## v0.0.23 - 2020-02-20
 
 - Fix markdown lint errors in CHANGELOG.md and README.md

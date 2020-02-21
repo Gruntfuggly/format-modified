@@ -115,7 +115,8 @@ function activate( context )
                     options.configurationFile = getConfigurationFile( options, document );
                     if( options.configurationFile === DO_NOT_FORMAT )
                     {
-                        debug( "Formatting inhibited for " + document.fileName );
+                        debug( "Formatting inhibited for " + document.fileName, options );
+                        reject( [] );
                     }
                     else
                     {
