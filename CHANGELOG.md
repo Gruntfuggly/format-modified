@@ -1,5 +1,7 @@
 # Format Modified Change Log
 
+## v0.0.24 - 2020-02-21
+
 - Handle 'format inhibited' better
 
 ## v0.0.23 - 2020-02-20
