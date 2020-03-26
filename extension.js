@@ -281,6 +281,18 @@ function activate( context )
 
     function setConfigurationFile( prompt, pattern, config, configTarget )
     {
+        function addHighlight( text )
+        {
+            return "▶ " + text + " ◀";
+        }
+
+        function removeHighlight( text )
+        {
+            text.replace( "▶ ", "" );
+            text.replace( " ◀", "" );
+            return text;
+        }
+
         function updateConfigurationFileSetting( workspace, setting, originalConfig, updatedConfig )
         {
             if( !originalConfig[ workspace ] )
@@ -310,19 +322,26 @@ function activate( context )
             {
                 if( file === current )
                 {
-                    return "▶ " + file + " ◀";
+                    return addHighlight( file );
                 }
                 return file;
             } );
-            options.unshift( prompt === "workspace" ? USE_LOCAL_CONFIGURATION_FILE : USE_INHERITED );
+            var defaultSelection = prompt === "workspace" ? USE_LOCAL_CONFIGURATION_FILE : USE_INHERITED;
+            if( current === undefined )
+            {
+                defaultSelection = addHighlight( defaultSelection );
+            }
+            options.unshift( defaultSelection );
             options.push( DO_NOT_FORMAT );
             vscode.window.showQuickPick( options, { placeHolder: "Select a configuration file for formatting this " + prompt } ).then( function( formatFile )
             {
                 if( formatFile )
                 {
+                    formatFile = removeHighlight( formatFile );
+
                     var configurationFilename = files[ options.indexOf( formatFile ) - 1 ];
                     var updatedConfig = config;
-                    if( formatFile === USE_LOCAL_CONFIGURATION_FILE )
+                    if( formatFile === USE_LOCAL_CONFIGURATION_FILE || formatFile === USE_INHERITED )
                     {
                         debug( "Removing configuration for " + pattern );
                         delete updatedConfig[ pattern ];

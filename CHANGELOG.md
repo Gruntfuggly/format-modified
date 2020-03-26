@@ -2,6 +2,7 @@
 
 - Fix README.md
 - Fix logging
+- Fix menu handling
 
 ## v0.0.25 - 2020-02-21
 
