@@ -1,5 +1,7 @@
 # Format Modified Change Log
 
+## v0.0.26 - 2020-03-26
+
 - Fix README.md
 - Fix logging
 - Fix menu handling
