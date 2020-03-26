@@ -66,7 +66,7 @@ Normally the configuration file that will be used for the current file is shown 
 
 ### Notes
 
-Using the **Format Modified: Set Configuration File** will update `format-modified.configurationFileMapping` your *Workspace settings*. Globs which match multiple files should be defined in your *User settings*.
+Using the **Format Modified: Set Configuration File** will update `format-modified.configurationFileMapping` in your *Workspace settings*. Globs which match multiple files should be defined in your *User settings*.
 
 When looking for alternative configurations, the combined settings are searched for an exact filename match first. If no exact match is found, the filename is matched against the globs.
 

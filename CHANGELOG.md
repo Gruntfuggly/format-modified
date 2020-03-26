@@ -1,5 +1,7 @@
 # Format Modified Change Log
 
+- Fix README.md
+
 ## v0.0.25 - 2020-02-21
 
 - Add current configuration file indicator to status bar
