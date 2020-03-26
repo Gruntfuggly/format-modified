@@ -1,6 +1,7 @@
 # Format Modified Change Log
 
 - Fix README.md
+- Fix logging
 
 ## v0.0.25 - 2020-02-21
 

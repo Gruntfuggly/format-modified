@@ -42,7 +42,6 @@ function activate( context )
 
     function getConfigurationFile( options, document )
     {
-        debug( "getConfigurationFile" );
         function findExactMatch()
         {
             for( var i = 0; i < globs.length; ++i )
@@ -52,12 +51,12 @@ function activate( context )
                 if( config.hasOwnProperty( glob ) && document.fileName === glob )
                 {
                     debug( "Matched exact glob: " + glob, options );
-                    configurationFile = {
+                    configurationForFile = {
                         path: config[ glob ],
                         type: "exact"
                     };
 
-                    debug( "Using alternative configuration file: " + configurationFile, options );
+                    debug( "Using alternative configuration file: " + configurationForFile.path, options );
                 }
             }
         }
@@ -73,19 +72,19 @@ function activate( context )
                     if( micromatch.isMatch( document.fileName, glob ) )
                     {
                         debug( "Matched glob: " + glob, options );
-                        configurationFile = {
+                        configurationForFile = {
                             path: config[ glob ],
                             type: "glob"
                         };
 
-                        debug( "Using alternative configuration file: " + configurationFile, options );
+                        debug( "Using alternative configuration file: " + configurationForFile.path, options );
                         break;
                     }
                 }
             }
         }
 
-        var configurationFile = { path: "", type: "none" };
+        var configurationForFile = { path: "", type: "none" };
 
         if( document && document.uri.scheme === 'file' )
         {
@@ -94,16 +93,15 @@ function activate( context )
 
             findExactMatch();
 
-            if( configurationFile.type === "none" )
+            if( configurationForFile.type === "none" )
             {
                 findAnyMatch();
             }
 
         }
 
-        console.log( JSON.stringify( configurationFile, null, 2 ) );
 
-        return configurationFile;
+        return configurationForFile;
     }
 
     function format( options, document )
