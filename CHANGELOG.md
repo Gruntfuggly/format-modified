@@ -1,5 +1,7 @@
 # Format Modified Change Log
 
+- Handle files with merge conflicts in a more friendly way
+
 ## v0.0.26 - 2020-03-26
 
 - Fix README.md
