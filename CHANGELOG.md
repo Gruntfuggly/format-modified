@@ -1,5 +1,7 @@
 # Format Modified Change Log
 
+## v0.0.28 - 2020-05-11
+
 - Force diffs to be generated without external diff tool
 
 ## v0.0.27 - 2020-04-29
