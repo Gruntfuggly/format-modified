@@ -1,5 +1,7 @@
 # Format Modified Change Log
 
+- Force diffs to be generated without external diff tool
+
 ## v0.0.27 - 2020-04-29
 
 - Handle files with merge conflicts in a more friendly way

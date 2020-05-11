@@ -78,7 +78,7 @@ module.exports.fetch = function run( options, document, tempFolder )
                     }
 
                     var differences = "";
-                    var command = "git show :" + relativePath + " | git diff -U0 --no-index --exit-code --no-color -- - " + tempFileName;
+                    var command = "git show :" + relativePath + " | git diff -U0 --no-index --exit-code --no-color --no-ext-diff -- - " + tempFileName;
 
                     options.debug( "Fetching diffs for " + name + " in " + folder + " using:", options );
                     options.debug( " " + command, options );
