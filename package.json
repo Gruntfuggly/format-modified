@@ -62,6 +62,11 @@
                     "markdownDescription": "Set to true to force the whole document to be formatted",
                     "default": false
                 },
+                "format-modified.formatWholeDocumentOnFailure": {
+                    "type": "boolean",
+                    "markdownDescription": "When the diffs for a file can't be generated (if the file has not been added to git, for example) then the whole document is formatted. Set to false to do nothing.",
+                    "default": true
+                },
                 "format-modified.languages": {
                     "type": "array",
                     "items": {

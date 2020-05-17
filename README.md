@@ -64,6 +64,10 @@ Override the default behaviour of only formatting modified parts of the file. Th
 
 Normally the configuration file that will be used for the current file is shown in the status bar. If you want to hide it, set this to false. *Note: You can also right click on it to hide it, but you'll have to do it in every window.*
 
+`format-modified.formatWholeDocumentOnFailure`
+
+When the diffs for the file can't be generated (if the file is not tracked in git, for example) the default behaviour is to format the whole file (if possible). Set this to false if you want the file to remain unchanged.
+
 ### Notes
 
 Using the **Format Modified: Set Configuration File** will update `format-modified.configurationFileMapping` in your *Workspace settings*. Globs which match multiple files should be defined in your *User settings*.

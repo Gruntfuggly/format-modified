@@ -23,6 +23,8 @@ module.exports.fetch = function run( options, document, tempFolder )
 {
     return new Promise( function( resolve, reject )
     {
+        var formatOnFailure = vscode.workspace.getConfiguration( 'format-modified' ).get( 'formatWholeDocumentOnFailure' );
+
         if( options.wholeDocument === true || vscode.workspace.getConfiguration( 'format-modified' ).get( 'formatWholeDocument' ) )
         {
             options.debug( "Formatting the whole document", options );
@@ -54,14 +56,24 @@ module.exports.fetch = function run( options, document, tempFolder )
 
             try
             {
+                var status = childProcess.execSync( "git status --porcelain " + filePath, { cwd: folder } ).toString();
+                if( status.indexOf( "??" ) === 0 )
+                {
+                    options.debug( "File not tracked", options );
+                    if( formatOnFailure )
+                    {
+                        options.debug( "Formatting the whole document", options );
+                    }
+                    resolve( formatOnFailure ? formatter.format( options, document, [] ) : [] );
+                }
+
                 var filesWithConflicts = childProcess.execSync( "git diff --name-only --diff-filter=U", { cwd: folder } ).toString().trim().split( '\n' );
                 var relativePath = childProcess.execSync( "git ls-files --full-name " + filePath, { cwd: folder } ).toString().trim();
                 if( filesWithConflicts )
                 {
                     relativePath = uniq( relativePath.split( '\n' ) )[ 0 ];
                 }
-                options.debug( "Relative path: " + relativePath, options );
-                if( filesWithConflicts && filesWithConflicts.indexOf( relativePath ) !== -1 )
+                if( relativePath && filesWithConflicts && filesWithConflicts.indexOf( relativePath ) !== -1 )
                 {
                     options.debug( "Formatting not possible - file currently has merge conflicts", options );
                     reject( new DiffsError( "Formatting not possible - file currently has merge conflicts" ) );
@@ -130,15 +142,21 @@ module.exports.fetch = function run( options, document, tempFolder )
                 }
                 else
                 {
-                    options.debug( "File not in git, so formatting the whole document", options );
-                    resolve( formatter.format( options, document, [] ) );
+                    if( formatOnFailure )
+                    {
+                        options.debug( "File not in git, so formatting the whole document", options );
+                    }
+                    resolve( formatOnFailure ? formatter.format( options, document, [] ) : [] );
                 }
             }
             catch( e )
             {
                 options.debug( e, options );
-                options.debug( "Formatting the whole document", options );
-                resolve( formatter.format( options, document, [] ) );
+                if( formatOnFailure )
+                {
+                    options.debug( "Formatting the whole document", options );
+                }
+                resolve( formatOnFailure ? formatter.format( options, document, [] ) : [] );
             }
         }
     } );

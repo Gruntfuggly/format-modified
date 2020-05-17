@@ -1,5 +1,7 @@
 # Format Modified Change Log
 
+- Add option to disable formatting whole document on failure
+
 ## v0.0.28 - 2020-05-11
 
 - Force diffs to be generated without external diff tool
