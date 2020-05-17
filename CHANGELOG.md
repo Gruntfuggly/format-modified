@@ -1,5 +1,7 @@
 # Format Modified Change Log
 
+## v0.0.29 - 2020-05-17
+
 - Add option to disable formatting whole document on failure
 
 ## v0.0.28 - 2020-05-11
