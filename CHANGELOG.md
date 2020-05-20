@@ -1,5 +1,7 @@
 # Format Modified Change Log
 
+## v0.0.30 - 2020-05-20
+
 - Improve check for files with conflicts
 
 ## v0.0.29 - 2020-05-17
