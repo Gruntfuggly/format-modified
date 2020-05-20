@@ -1,5 +1,7 @@
 # Format Modified Change Log
 
+- Improve check for files with conflicts
+
 ## v0.0.29 - 2020-05-17
 
 - Add option to disable formatting whole document on failure

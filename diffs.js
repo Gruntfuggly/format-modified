@@ -19,6 +19,11 @@ function uniq( array )
     } );
 }
 
+function escapeRegExp( string )
+{
+    return string.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' ); // $& means the whole matched string
+}
+
 module.exports.fetch = function run( options, document, tempFolder )
 {
     return new Promise( function( resolve, reject )
@@ -67,13 +72,24 @@ module.exports.fetch = function run( options, document, tempFolder )
                     resolve( formatOnFailure ? formatter.format( options, document, [] ) : [] );
                 }
 
-                var filesWithConflicts = childProcess.execSync( "git diff --name-only --diff-filter=U", { cwd: folder } ).toString().trim().split( '\n' );
-                var relativePath = childProcess.execSync( "git ls-files --full-name " + filePath, { cwd: folder } ).toString().trim();
-                if( filesWithConflicts )
+                var conflicts;
+                try
                 {
-                    relativePath = uniq( relativePath.split( '\n' ) )[ 0 ];
+                    conflicts = childProcess.execSync( "git diff --check", { cwd: folder } ).toString().trim().split( '\n' );
                 }
-                if( relativePath && filesWithConflicts && filesWithConflicts.indexOf( relativePath ) !== -1 )
+                catch( e )
+                {
+                    conflicts = e.stdout.toString().trim().split( '\n' );
+                }
+                var relativePath = childProcess.execSync( "git ls-files --full-name " + filePath, { cwd: folder } ).toString().trim();
+                relativePath = uniq( relativePath.split( '\n' ) )[ 0 ];
+                var conflictRegex = new RegExp( "^" + escapeRegExp( relativePath ) + ":\\d+: leftover conflict marker" );
+                var fileHasConflicts = conflicts.filter( function( conflict )
+                {
+                    return conflict.match( conflictRegex );
+                } ).length > 0;
+
+                if( fileHasConflicts )
                 {
                     options.debug( "Formatting not possible - file currently has merge conflicts", options );
                     reject( new DiffsError( "Formatting not possible - file currently has merge conflicts" ) );
